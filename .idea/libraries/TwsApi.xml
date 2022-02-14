@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="TwsApi">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../../../TWS API/source/JavaClient/TwsApi.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
