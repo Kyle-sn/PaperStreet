@@ -10,7 +10,8 @@ public class MarketDataConstants {
 
     public static final String BROKER_CONNECTION_IP = "127.0.0.1";
 
-    public static final int BROKER_CONNECTION_PORT = 7496;
+    // 7496 = prod | 7497 = paper account
+    public static final int BROKER_CONNECTION_PORT = 7497;
 
     /** Broker API tick type String indicating which tick values to receive from market data */
     public static final String TICK_STRING = "221";
