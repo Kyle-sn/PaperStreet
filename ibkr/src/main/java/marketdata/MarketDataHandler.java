@@ -4,6 +4,7 @@ import com.ib.client.*;
 
 import static marketdata.MarketDataConstants.*;
 
+// TODO: add javadoc for this class
 public class MarketDataHandler {
 
     private final EClientSocket client;
@@ -23,8 +24,9 @@ public class MarketDataHandler {
      * a notification flag is triggered to let other threads now that there is a message waiting to
      * be processed.
      */
-    public void connect() {
-        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 1);
+    public void connectMarketDataHandler() {
+        // TODO: make the clientId dynamic
+        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 2 /* clientID */);
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
@@ -49,7 +51,7 @@ public class MarketDataHandler {
     public void requestMarketData(String symbol) {
         Contract contract = ContractHandler.getContract(symbol);
         // TODO: make tickId dynamic
-        int tickId = 4; // need to update every time I disconnect and try to reconnect
+        int tickId = 5;
 
         client.reqMarketDataType(MARKET_DATA_TYPE);
         client.reqMktData(tickId, contract, TICK_STRING,
