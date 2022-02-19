@@ -4,7 +4,10 @@ import com.ib.client.*;
 
 import static marketdata.MarketDataConstants.*;
 
-// TODO: add javadoc for this class
+/**
+ * Main module of the Market Data Capture. It connects to IBKR, returns callback information
+ * related to market data, and specifies what type of market data we are requesting.
+ */
 public class MarketDataHandler {
 
     private final EClientSocket client;

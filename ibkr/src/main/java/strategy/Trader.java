@@ -5,7 +5,7 @@ import linehandler.OrderHandler;
 import java.util.concurrent.TimeUnit;
 
 public class Trader {
-    //TODO: add logic to send a limit order within x% of the last price written by MarketDataHandler
+
     public static final OrderHandler orderHandler = new OrderHandler();
 
     public static void main(String[] args) throws InterruptedException {

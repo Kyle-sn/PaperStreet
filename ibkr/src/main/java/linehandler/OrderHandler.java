@@ -9,10 +9,12 @@ import java.time.LocalDateTime;
 import static marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
 import static marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
 
-// TODO: add javadoc explaining this module
+/**
+ * Main module of the Order Management System. It connects to IBKR, receives the next valid order ID,
+ * and is called by the strategy to submit orders.
+ */
 public class OrderHandler {
 
-    private static EClient client;
     private static int nextValidOrderId;
     private final EClientSocket clientSocket;
     private final EReaderSignal signal;
@@ -52,14 +54,7 @@ public class OrderHandler {
     public void sendLimitOrder(String symbol, String side, double quantity, double price) {
         Contract contract = ContractHandler.getContract(symbol);
         int orderId = getValidOrderId();
-        // TODO: fx NullPointerExeption I keep getting. Currently not sending orders correctly.
-        try {
-            client.placeOrder(orderId,
-                    contract,
-                    OrderTypes.LimitOrder(side, quantity, price));
-        } catch (NullPointerException e) {
-            System.out.println(e);
-        }
+        clientSocket.placeOrder(orderId, contract, OrderTypes.LimitOrder(side, quantity, price));
 
         LocalDateTime timeStamp = LocalDateTime.now();
 

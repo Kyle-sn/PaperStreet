@@ -17,7 +17,6 @@ public class EWrapperImpl implements EWrapper {
     private final EReaderSignal readerSignal;
     private final EClientSocket clientSocket;
     private final MarketDataWriter writer;
-    protected int currentOrderId = -1;
 
     public EWrapperImpl() {
         readerSignal = new EJavaSignal();
@@ -66,16 +65,43 @@ public class EWrapperImpl implements EWrapper {
 
     }
 
+    /**
+     * Gives the up-to-date information of an order every time it changes. Often there are duplicate orderStatus messages.
+     *
+     * @param orderId
+     * @param status
+     * @param filled
+     * @param remaining
+     * @param avgFillPrice
+     * @param permId
+     * @param parentId
+     * @param lastFillPrice
+     * @param clientId
+     * @param whyHeld
+     * @param mktCapPrice
+     */
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-
+        System.out.println("ORDER_STATUS_CALLBACK: orderID: " + orderId + ", status: " + status + ", filled: " + filled +
+                ", remaining: " + remaining + ", avgFillPrice: " + avgFillPrice + ", permId: " + permId +
+                ", parentId: " + parentId + ", lastFillPrice: " + lastFillPrice + ", clientId: " + clientId +
+                ", whyHeld: " + whyHeld + ", mktCapPrice: " + mktCapPrice);
     }
 
+    /**
+     * Feeds in currently open orders.
+     *
+     * @param orderId
+     * @param contract
+     * @param order
+     * @param orderState
+     */
     @Override
     public void openOrder(int orderId, Contract contract, Order order,
                           OrderState orderState) {
-
+        System.out.println("OPEN_ORDER_CALLBACK: orderId: " + orderId + ", contract: " + contract.symbol() +
+                ", order: " + order + ", orderState: " + orderState);
     }
 
     @Override
