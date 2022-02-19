@@ -28,7 +28,6 @@ public class MarketDataHandler {
      * be processed.
      */
     public void connectMarketDataHandler() {
-        // TODO: make the clientId dynamic
         client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 2 /* clientID */);
         reader = new EReader(client, signal);
         reader.start();
@@ -53,7 +52,6 @@ public class MarketDataHandler {
      */
     public void requestMarketData(String symbol) {
         Contract contract = ContractHandler.getContract(symbol);
-        // TODO: make tickId dynamic
         int tickId = 5;
 
         client.reqMarketDataType(MARKET_DATA_TYPE);

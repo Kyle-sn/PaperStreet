@@ -42,14 +42,11 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
-        // only write callbacks to a csv that are delayed last price TickTypes
-        if (TickType.get(field) == TickType.DELAYED_LAST) {
-            try {
-                LocalDateTime timeStamp = LocalDateTime.now();
-                writer.writeTicks(timeStamp,SYMBOL, TickType.getField(field), price);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        LocalDateTime timeStamp = LocalDateTime.now();
+        try {
+            writer.writeTicks(timeStamp,SYMBOL, TickType.getField(field), price);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -117,7 +114,6 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void openOrder(int orderId, Contract contract, Order order,
                           OrderState orderState) {
-        //TODO: specify specific Order and OrderState properties I want to return
         System.out.println("OPEN_ORDER_CALLBACK: orderId: " + orderId + ", contract: " + contract.symbol() +
                 ", order: " + order + ", orderState: " + orderState);
     }
