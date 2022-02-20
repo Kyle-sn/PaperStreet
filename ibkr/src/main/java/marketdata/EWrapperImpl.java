@@ -97,10 +97,11 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        System.out.println("ORDER_STATUS_CALLBACK: orderId: " + orderId + ", status: " + status + ", filled: " + filled +
-                ", remaining: " + remaining + ", avgFillPrice: " + avgFillPrice + ", permId: " + permId +
-                ", parentId: " + parentId + ", lastFillPrice: " + lastFillPrice + ", clientId: " + clientId +
-                ", whyHeld: " + whyHeld + ", mktCapPrice: " + mktCapPrice);
+        LocalDateTime timeStamp = LocalDateTime.now();
+        System.out.println(timeStamp + " order_status: orderId=" + orderId + "|status=" + status + "|filled=" + filled +
+                "|remaining=" + remaining + "|avgFillPrice=" + avgFillPrice + "|permId=" + permId +
+                "|parentId=" + parentId + "|lastFillPrice=" + lastFillPrice + "|clientId=" + clientId +
+                "|whyHeld=" + whyHeld + "|mktCapPrice=" + mktCapPrice);
     }
 
     /**
@@ -114,8 +115,11 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void openOrder(int orderId, Contract contract, Order order,
                           OrderState orderState) {
-        System.out.println("OPEN_ORDER_CALLBACK: orderId: " + orderId + ", contract: " + contract.symbol() +
-                ", order: " + order + ", orderState: " + orderState);
+        LocalDateTime timeStamp = LocalDateTime.now();
+        System.out.println(timeStamp + " open_order: orderId=" + orderId + "|symbol=" + contract.localSymbol() +
+                "|exchange=" + contract.exchange() + "|side=" + order.action() + "|quantity=" + order.totalQuantity() +
+                "|orderType=" + order.orderType() + "|limitPx=" + order.lmtPrice() + "|auxPx=" + order.auxPrice() +
+                "|tif=" + order.tif() + "|status=" + orderState.status() + "|commission=" + orderState.commission());
     }
 
     @Override
@@ -178,6 +182,11 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void execDetails(int reqId, Contract contract, Execution execution) {
+        LocalDateTime timeStamp = LocalDateTime.now();
+        System.out.println(timeStamp + "exec_message: reqId=" + reqId + "|symbol=" + contract.localSymbol() +
+                "|exchange=" + contract.exchange() + "|orderId=" + execution.orderId() + "|execId=" + execution.execId() +
+                "|execTime=" + execution.time() + "|side=" + execution.side() + "|fillAmt=" + execution.shares() +
+                "|fillPx=" + execution.price());
 
     }
 
