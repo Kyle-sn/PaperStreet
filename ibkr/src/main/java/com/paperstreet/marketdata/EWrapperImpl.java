@@ -1,7 +1,9 @@
-package marketdata;
+package com.paperstreet.marketdata;
 
 import com.ib.client.*;
-import linehandler.OrderHandler;
+import com.paperstreet.linehandler.OrderHandler;
+import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -9,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import static marketdata.MarketDataConstants.SYMBOL;
 
 /**
  * This interface's methods are used by the TWS/Gateway to communicate with the API client. Every API client
@@ -44,7 +44,7 @@ public class EWrapperImpl implements EWrapper {
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
         LocalDateTime timeStamp = LocalDateTime.now();
         try {
-            writer.writeTicks(timeStamp,SYMBOL, TickType.getField(field), price);
+            writer.writeTicks(timeStamp, MarketDataConstants.SYMBOL, TickType.getField(field), price);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,8 +1,6 @@
-package marketdata;
+package com.paperstreet.marketdata;
 
 import com.ib.client.*;
-
-import static marketdata.MarketDataConstants.*;
 
 /**
  * Main module of the Market Data Capture. It connects to IBKR, returns callback information
@@ -28,7 +26,7 @@ public class MarketDataHandler {
      * be processed.
      */
     public void connectMarketDataHandler() {
-        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 2 /* clientID */);
+        client.eConnect(MarketDataConstants.BROKER_CONNECTION_IP, MarketDataConstants.BROKER_CONNECTION_PORT, 2 /* clientID */);
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
@@ -54,8 +52,8 @@ public class MarketDataHandler {
         Contract contract = ContractHandler.getContract(symbol);
         int tickId = 5;
 
-        client.reqMarketDataType(MARKET_DATA_TYPE);
-        client.reqMktData(tickId, contract, TICK_STRING,
+        client.reqMarketDataType(MarketDataConstants.MARKET_DATA_TYPE);
+        client.reqMktData(tickId, contract, MarketDataConstants.TICK_STRING,
                 false /* Snapshot */, false /* Regulatory Snapshot */, null /* MktDataOptions */);
     }
 }

@@ -1,4 +1,4 @@
-package strategy;
+package com.paperstreet.strategy;
 
 import java.io.*;
 

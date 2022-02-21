@@ -1,4 +1,4 @@
-package marketdata;
+package com.paperstreet.marketdata;
 
 /**
  * Market data constants.

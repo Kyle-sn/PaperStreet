@@ -1,6 +1,4 @@
-package marketdata;
-
-import static marketdata.MarketDataConstants.SYMBOL;
+package com.paperstreet.marketdata;
 
 public class Connect {
 
@@ -8,6 +6,6 @@ public class Connect {
 
     public static void main(String[] args) {
         marketDataHandler.connectMarketDataHandler();
-        marketDataHandler.requestMarketData(SYMBOL);
+        marketDataHandler.requestMarketData(MarketDataConstants.SYMBOL);
     }
 }

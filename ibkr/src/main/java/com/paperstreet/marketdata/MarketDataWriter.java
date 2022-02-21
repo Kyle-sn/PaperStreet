@@ -1,4 +1,4 @@
-package marketdata;
+package com.paperstreet.marketdata;
 
 import java.io.*;
 import java.time.LocalDateTime;

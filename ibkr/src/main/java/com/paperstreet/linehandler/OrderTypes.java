@@ -1,4 +1,4 @@
-package linehandler;
+package com.paperstreet.linehandler;
 
 import com.ib.client.Decimal;
 import com.ib.client.Order;

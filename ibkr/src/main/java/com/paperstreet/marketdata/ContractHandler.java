@@ -1,8 +1,8 @@
-package marketdata;
+package com.paperstreet.marketdata;
 
 import com.ib.client.Contract;
 
-import static marketdata.MarketDataConstants.*;
+import static com.paperstreet.marketdata.MarketDataConstants.*;
 
 public class ContractHandler {
 

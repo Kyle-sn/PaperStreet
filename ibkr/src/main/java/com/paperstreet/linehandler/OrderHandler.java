@@ -1,13 +1,11 @@
-package linehandler;
+package com.paperstreet.linehandler;
 
 import com.ib.client.*;
-import marketdata.ContractHandler;
-import marketdata.EWrapperImpl;
+import com.paperstreet.marketdata.ContractHandler;
+import com.paperstreet.marketdata.EWrapperImpl;
 
-import java.time.LocalDateTime;
-
-import static marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
-import static marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
 
 /**
  * Main module of the Order Management System. It connects to IBKR, receives the next valid order ID,
@@ -34,8 +32,6 @@ public class OrderHandler {
      * be processed.
      */
     public void connectOrderHandler() {
-        //TODO: make the clientId dynamic
-        //TODO: make sure it is not the same as the MarketDataHandlers connection (a simple check  should suffice)
         clientSocket.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 3 /* clientID */);
         reader = new EReader(clientSocket, signal);
         reader.start();
@@ -55,11 +51,6 @@ public class OrderHandler {
         Contract contract = ContractHandler.getContract(symbol);
         int orderId = getValidOrderId();
         clientSocket.placeOrder(orderId, contract, OrderTypes.LimitOrder(side, quantity, price));
-
-        LocalDateTime timeStamp = LocalDateTime.now();
-
-        System.out.println(timeStamp + ": order=limit_order,side=" + side + ",quantity=" +
-                quantity + ",symbol=" + symbol + ",price=" + price);
     }
 
     public static void setNextValidId(int id) {
