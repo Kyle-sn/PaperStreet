@@ -2,8 +2,6 @@ package com.paperstreet.marketdata;
 
 import com.ib.client.*;
 import com.paperstreet.linehandler.OrderHandler;
-import org.apache.logging.log4j.LogManager;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -22,6 +20,7 @@ public class EWrapperImpl implements EWrapper {
     private final EReaderSignal readerSignal;
     private final EClientSocket clientSocket;
     private final MarketDataWriter writer;
+
 
     public EWrapperImpl() {
         readerSignal = new EJavaSignal();
@@ -42,11 +41,12 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
-        LocalDateTime timeStamp = LocalDateTime.now();
-        try {
-            writer.writeTicks(timeStamp, MarketDataConstants.SYMBOL, TickType.getField(field), price);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (TickType.get(field) == TickType.DELAYED_LAST) {
+            try {
+                writer.writeTicks(LocalDateTime.now(), MarketDataConstants.SYMBOL, TickType.getField(field), price);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -62,12 +62,10 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void tickGeneric(int tickerId, int tickType, double value) {
-
     }
 
     @Override
     public void tickString(int tickerId, int tickType, String value) {
-
     }
 
     @Override
@@ -97,8 +95,7 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        LocalDateTime timeStamp = LocalDateTime.now();
-        System.out.println(timeStamp + " order_status: orderId=" + orderId + "|status=" + status + "|filled=" + filled +
+        System.out.println(LocalDateTime.now() + " order_status: orderId=" + orderId + "|status=" + status + "|filled=" + filled +
                 "|remaining=" + remaining + "|avgFillPrice=" + avgFillPrice + "|permId=" + permId +
                 "|parentId=" + parentId + "|lastFillPrice=" + lastFillPrice + "|clientId=" + clientId +
                 "|whyHeld=" + whyHeld + "|mktCapPrice=" + mktCapPrice);
@@ -115,8 +112,7 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void openOrder(int orderId, Contract contract, Order order,
                           OrderState orderState) {
-        LocalDateTime timeStamp = LocalDateTime.now();
-        System.out.println(timeStamp + " open_order: orderId=" + orderId + "|symbol=" + contract.localSymbol() +
+        System.out.println(LocalDateTime.now() + " open_order: orderId=" + orderId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|side=" + order.action() + "|quantity=" + order.totalQuantity() +
                 "|orderType=" + order.orderType() + "|limitPx=" + order.lmtPrice() + "|auxPx=" + order.auxPrice() +
                 "|tif=" + order.tif() + "|status=" + orderState.status() + "|commission=" + orderState.commission());
@@ -182,8 +178,7 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void execDetails(int reqId, Contract contract, Execution execution) {
-        LocalDateTime timeStamp = LocalDateTime.now();
-        System.out.println(timeStamp + "exec_message: reqId=" + reqId + "|symbol=" + contract.localSymbol() +
+        System.out.println(LocalDateTime.now() + "exec_message: reqId=" + reqId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|orderId=" + execution.orderId() + "|execId=" + execution.execId() +
                 "|execTime=" + execution.time() + "|side=" + execution.side() + "|fillAmt=" + execution.shares() +
                 "|fillPx=" + execution.price());
@@ -337,17 +332,17 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void error(Exception e) {
-        System.out.println("ERROR: Exception: "+e.getMessage());
+        System.out.println(LocalDateTime.now() + " ERROR Exception: "+e.getMessage());
     }
 
     @Override
     public void error(String str) {
-        System.out.println("ERROR: " + str);
+        System.out.println(LocalDateTime.now() + " ERROR " + str);
     }
 
     @Override
     public void error(int id, int errorCode, String errorMsg) {
-        System.out.println("ERROR: Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg);
+        System.out.println(LocalDateTime.now() + " ERROR Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg);
     }
 
     @Override
