@@ -10,6 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="paperstreet" target="11" />
       <module name="PaperStreet" target="11" />
     </bytecodeTargetLevel>
   </component>

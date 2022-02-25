@@ -12,6 +12,6 @@ public class Trader {
         orderHandler.connectOrderHandler();
         //TODO: improve the logic below so that we wait for a confirmed callback instead of sleeping
         TimeUnit.SECONDS.sleep(5);
-        orderHandler.sendLimitOrder("NQ", "BUY", 1, 14050);
+        orderHandler.sendLimitOrder("QQQ", "BUY", 1, 330.00);
     }
 }

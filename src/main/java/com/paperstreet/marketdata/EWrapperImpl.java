@@ -95,7 +95,7 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        System.out.println(LocalDateTime.now() + " order_status: orderId=" + orderId + "|status=" + status + "|filled=" + filled +
+        System.out.println(LocalDateTime.now() + " INFO order_status: orderId=" + orderId + "|status=" + status + "|filled=" + filled +
                 "|remaining=" + remaining + "|avgFillPrice=" + avgFillPrice + "|permId=" + permId +
                 "|parentId=" + parentId + "|lastFillPrice=" + lastFillPrice + "|clientId=" + clientId +
                 "|whyHeld=" + whyHeld + "|mktCapPrice=" + mktCapPrice);
@@ -112,7 +112,7 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void openOrder(int orderId, Contract contract, Order order,
                           OrderState orderState) {
-        System.out.println(LocalDateTime.now() + " open_order: orderId=" + orderId + "|symbol=" + contract.localSymbol() +
+        System.out.println(LocalDateTime.now() + " INFO open_order: orderId=" + orderId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|side=" + order.action() + "|quantity=" + order.totalQuantity() +
                 "|orderType=" + order.orderType() + "|limitPx=" + order.lmtPrice() + "|auxPx=" + order.auxPrice() +
                 "|tif=" + order.tif() + "|status=" + orderState.status() + "|commission=" + orderState.commission());
@@ -157,7 +157,7 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void nextValidId(int orderId) {
-        System.out.println(EWrapperMsgGenerator.nextValidId(orderId));
+        System.out.println(LocalDateTime.now() + " INFO Next vaild ID: " + orderId);
         OrderHandler.setNextValidId(orderId);
     }
 
@@ -178,7 +178,7 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void execDetails(int reqId, Contract contract, Execution execution) {
-        System.out.println(LocalDateTime.now() + "exec_message: reqId=" + reqId + "|symbol=" + contract.localSymbol() +
+        System.out.println(LocalDateTime.now() + " INFO exec_message: reqId=" + reqId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|orderId=" + execution.orderId() + "|execId=" + execution.execId() +
                 "|execTime=" + execution.time() + "|side=" + execution.side() + "|fillAmt=" + execution.shares() +
                 "|fillPx=" + execution.price());
@@ -271,7 +271,7 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void marketDataType(int reqId, int marketDataType) {
-        System.out.println("Market data type: ["+marketDataType+"]\n");
+        System.out.println(LocalDateTime.now() + " INFO Market data type: " + marketDataType);
     }
 
     @Override

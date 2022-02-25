@@ -16,7 +16,6 @@ public class ContractHandler {
     public static Contract contract(String ticker) {
         Contract contract = new Contract();
         contract.symbol(ticker);
-        contract.localSymbol("NQH2"); // remove when done testing using futures, only care about stocks
         contract.secType(SECURITY_TYPE);
         contract.exchange(EXCHANGE);
         contract.currency(CURRENCY);

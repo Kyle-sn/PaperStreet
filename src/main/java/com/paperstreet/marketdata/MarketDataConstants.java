@@ -17,13 +17,13 @@ public class MarketDataConstants {
     public static final String TICK_STRING = "221";
 
     /** Symbol to request market data for */
-    public static final String SYMBOL = "NQ";
+    public static final String SYMBOL = "QQQ";
 
     /** Stock security type */
-    public static final String SECURITY_TYPE = "FUT"; // STK
+    public static final String SECURITY_TYPE = "STK"; // FUT
 
     /** Stock exchange routing */
-    public static final String EXCHANGE = "GLOBEX"; // SMART
+    public static final String EXCHANGE = "SMART"; // GLOBEX
 
     /** Stock currency */
     public static final String CURRENCY = "USD";
