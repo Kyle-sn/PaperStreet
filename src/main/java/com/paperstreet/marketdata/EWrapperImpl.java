@@ -21,7 +21,6 @@ public class EWrapperImpl implements EWrapper {
     private final EClientSocket clientSocket;
     private final MarketDataWriter writer;
 
-
     public EWrapperImpl() {
         readerSignal = new EJavaSignal();
         clientSocket = new EClientSocket(this, readerSignal);
