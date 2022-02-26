@@ -1,4 +1,80 @@
 package com.paperstreet.positionhandler;
 
+import com.ib.client.EClientSocket;
+import com.ib.client.EJavaSignal;
+import com.ib.client.EReader;
+import com.ib.client.EReaderSignal;
+import com.paperstreet.marketdata.EWrapperImpl;
+import com.paperstreet.marketdata.MarketDataConstants;
+
 public class PositionHandler {
+
+    private final EClientSocket client;
+    private final EReaderSignal signal;
+    private EReader reader;
+
+    public PositionHandler() {
+        this.signal = new EJavaSignal();
+        EWrapperImpl wrapper = new EWrapperImpl();
+        this.client = new EClientSocket(wrapper, signal);
+    }
+
+    /**
+     * First establishes an API connection by requesting from the operating system that a TCP socket
+     * be opened to the specified IP address and socket port. Then use the EReader class to read from
+     * the socket and add messages to a queue. Everytime a new message is added to the message queue,
+     * a notification flag is triggered to let other threads now that there is a message waiting to
+     * be processed.
+     */
+    public void connectPositionHandler() {
+        client.eConnect(MarketDataConstants.BROKER_CONNECTION_IP, MarketDataConstants.BROKER_CONNECTION_PORT, 4 /* clientID */);
+        reader = new EReader(client, signal);
+        reader.start();
+        new Thread(() -> {
+            while (client.isConnected()) {
+                signal.waitForSignal();
+                try {
+                    reader.processMsgs();
+                } catch (Exception e) {
+                    System.out.println("Exception: " + e.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Subscribes to a specific account's information and portfolio.
+     *
+     * @param bool set to true to start the subscription and to false to stop it.
+     * @param accountNumber the account id for which the information is requested.
+     */
+    public void requestAccountUpdates(boolean bool, String accountNumber) {
+        client.reqAccountUpdates(bool, accountNumber);
+    }
+
+    /**
+     * Requests a specific account's summary. In additon to the params below, a string of desired tags
+     * to return information for is hardcoded.
+     *
+     * @param reqId the unique request identifier.
+     * @param group set to "All" to return account summary data for all accounts.
+     */
+    public void requestAccountSummary(int reqId, String group) {
+        client.reqAccountSummary(reqId, group, "AccountType,NetLiquidation,TotalCashValue,SettledCash," +
+                "AccruedCash,BuyingPower,EquityWithLoanValue,PreviousEquityWithLoanValue,GrossPositionValue," +
+                "ReqTEquity,ReqTMargin,SMA,InitMarginReq,MaintMarginReq,AvailableFunds,ExcessLiquidity,Cushion," +
+                "FullInitMarginReq,FullMaintMarginReq,FullAvailableFunds,FullExcessLiquidity,LookAheadNextChange," +
+                "LookAheadInitMarginReq ,LookAheadMaintMarginReq,LookAheadAvailableFunds,LookAheadExcessLiquidity," +
+                "HighestSeverity,DayTradesRemaining,Leverage");
+    }
+
+    /**
+     * Subscribes to position updates for all accessible accounts. All positions sent initially,
+     * and then only updates as positions change.
+     */
+    public void requestPositions() {
+        client.reqPositions();
+    }
+
+
 }

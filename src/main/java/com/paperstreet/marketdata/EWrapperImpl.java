@@ -122,16 +122,44 @@ public class EWrapperImpl implements EWrapper {
 
     }
 
+    /**
+     * Receives the subscribed account's information. Only one account can be subscribed at a time.
+     * After the initial callback to updateAccountValue, callbacks only occur for values which have changed.
+     * This occurs at the time of a position change, or every 3 minutes at most. This frequency cannot be adjusted.
+     *
+     * @param key the value being updated.
+     * @param value up-to-date value.
+     * @param currency the currency on which the value is expressed.
+     * @param accountName the account.
+     */
     @Override
     public void updateAccountValue(String key, String value, String currency,
                                    String accountName) {
-
+        System.out.println(LocalDateTime.now() + " INFO updateAccountValue: key: " + key + ", value: " + value +
+                ", currency: " + currency + ", accountName: " + accountName);
     }
 
+    /**
+     * Receives the subscribed account's portfolio. This function will receive only the portfolio of the
+     * subscribed account. After the initial callback to updatePortfolio, callbacks only occur for
+     * positions which have changed.
+     *
+     * @param contract the contract for which a position is held.
+     * @param position the number of positions held.
+     * @param marketPrice instrument's unitary price.
+     * @param marketValue total market value of the instrument.
+     * @param averageCost the average cost.
+     * @param unrealizedPNL unrealized PnL.
+     * @param realizedPNL realized PnL.
+     * @param accountName the account name.
+     */
     @Override
     public void updatePortfolio(Contract contract, Decimal position, double marketPrice, double marketValue,
                                 double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
-
+        System.out.println(LocalDateTime.now() + " INFO updatePortfolio: symbol: " + contract.localSymbol() +
+                ", position: " + position + ", marketPrice: " + marketPrice + ", marketValue: " + marketValue +
+                ", averageCost: " + averageCost + ", unrealizedPnL" + unrealizedPNL + ", realizedPnL: " +
+                realizedPNL + ", accountName: " + accountName);
     }
 
     @Override
@@ -278,9 +306,18 @@ public class EWrapperImpl implements EWrapper {
 
     }
 
+    /**
+     * Provides the portfolio's open positions.
+     *
+     * @param account the account holding the position.
+     * @param contract the position's Contract.
+     * @param pos the number of positions held.
+     * @param avgCost the average cost of the position.
+     */
     @Override
     public void position(String account, Contract contract, Decimal pos, double avgCost) {
-
+        System.out.println(LocalDateTime.now() + " INFO position: account: " + account +
+                ", symbol: " + contract.localSymbol() + ", quantity: " + pos + ", avgCost: " + avgCost);
     }
 
     @Override
@@ -288,10 +325,20 @@ public class EWrapperImpl implements EWrapper {
 
     }
 
+    /**
+     * Receives the account information. This method will receive the account information just as it
+     * appears in the TWS' Account Summary Window.
+     *
+     * @param reqId the request's unique identifier.
+     * @param account the account id.
+     * @param tag the account's attribute being received.
+     * @param value the account's attribute's value.
+     * @param currency the currency on which the value is expressed.
+     */
     @Override
-    public void accountSummary(int reqId, String account, String tag,
-                               String value, String currency) {
-
+    public void accountSummary(int reqId, String account, String tag, String value, String currency) {
+        System.out.println(LocalDateTime.now() + " INFO accountSummary: reqId: " + reqId + ", account: " + account +
+                ", tag: " + tag + ", value: " + value + ", currency: " + currency);
     }
 
     @Override
