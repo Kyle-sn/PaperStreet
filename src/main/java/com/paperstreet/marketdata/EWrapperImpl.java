@@ -2,10 +2,10 @@ package com.paperstreet.marketdata;
 
 import com.ib.client.*;
 import com.paperstreet.linehandler.OrderHandler;
+import com.paperstreet.parser.ParserHandler;
 import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -20,13 +20,13 @@ public class EWrapperImpl implements EWrapper {
 
     private final EReaderSignal readerSignal;
     private final EClientSocket clientSocket;
-    private final MarketDataWriter writer;
     private final LogHandler logHandler;
+    private final ParserHandler parserHandler;
 
     public EWrapperImpl() {
+        parserHandler = new ParserHandler();
         readerSignal = new EJavaSignal();
         clientSocket = new EClientSocket(this, readerSignal);
-        writer = new MarketDataWriter();
         logHandler = new LogHandler();
     }
 
@@ -43,9 +43,10 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
+        String priceTickString = MarketDataConstants.SYMBOL + "," + TickType.getField(field) + "," + price;
         if (TickType.get(field) == TickType.DELAYED_LAST) {
             try {
-                writer.writeTicks(LocalDateTime.now(), MarketDataConstants.SYMBOL, TickType.getField(field), price);
+                parserHandler.parseMarketData(priceTickString);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -97,10 +98,16 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void orderStatus(int orderId, String status, Decimal filled, Decimal remaining, double avgFillPrice,
                             int permId, int parentId, double lastFillPrice, int clientId, String whyHeld, double mktCapPrice) {
-        logHandler.logInfo("orderId=" + orderId + "|status=" + status + "|filled=" + filled +
+        String orderStatusString = "orderId=" + orderId + "|status=" + status + "|filled=" + filled +
                 "|remaining=" + remaining + "|avgFillPrice=" + avgFillPrice + "|permId=" + permId +
-                        "|parentId=" + parentId + "|lastFillPrice=" + lastFillPrice + "|clientId=" + clientId +
-                        "|whyHeld=" + whyHeld + "|mktCapPrice=" + mktCapPrice);
+                "|parentId=" + parentId + "|lastFillPrice=" + lastFillPrice + "|clientId=" + clientId +
+                "|whyHeld=" + whyHeld + "|mktCapPrice=" + mktCapPrice;
+        logHandler.logInfo(orderStatusString);
+        try {
+            parserHandler.parseOrderData(orderStatusString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -113,10 +120,16 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void openOrder(int orderId, Contract contract, Order order, OrderState orderState) {
-        logHandler.logInfo("orderId=" + orderId + "|symbol=" + contract.localSymbol() +
+        String openOrderString = "orderId=" + orderId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|side=" + order.action() + "|quantity=" + order.totalQuantity() +
                 "|orderType=" + order.orderType() + "|limitPx=" + order.lmtPrice() + "|auxPx=" + order.auxPrice() +
-                "|tif=" + order.tif() + "|status=" + orderState.status() + "|commission=" + orderState.commission());
+                "|tif=" + order.tif() + "|status=" + orderState.status() + "|commission=" + orderState.commission();
+        logHandler.logInfo(openOrderString);
+        try {
+            parserHandler.parseOrderData(openOrderString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -136,8 +149,13 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void updateAccountValue(String key, String value, String currency, String accountName) {
-        logHandler.logInfo("key: " + key + ", value: " + value +
-                ", currency: " + currency + ", accountName: " + accountName);
+        String accountValueString = key + "," + value + "," + currency + "," + accountName;
+        logHandler.logInfo(accountValueString);
+        try {
+            parserHandler.parsePortfolioData(accountValueString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -157,10 +175,16 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void updatePortfolio(Contract contract, Decimal position, double marketPrice, double marketValue,
                                 double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
-        logHandler.logInfo("symbol: " + contract.localSymbol() +
-                ", position: " + position + ", marketPrice: " + marketPrice + ", marketValue: " + marketValue +
-                ", averageCost: " + averageCost + ", unrealizedPnL" + unrealizedPNL + ", realizedPnL: " +
-                realizedPNL + ", accountName: " + accountName);
+        String portfolioInfoString = "symbol=" + contract.localSymbol() + "|position=" + position +
+                "|marketPrice=" + marketPrice + "|marketValue=" + marketValue + "|averageCost=" +
+                averageCost + "|unrealizedPnL=" + unrealizedPNL + "|realizedPnL=" + realizedPNL +
+                "|accountName=" + accountName;
+        logHandler.logInfo(portfolioInfoString);
+        try {
+            parserHandler.parsePositionData(portfolioInfoString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -206,10 +230,16 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void execDetails(int reqId, Contract contract, Execution execution) {
-        logHandler.logInfo("reqId=" + reqId + "|symbol=" + contract.localSymbol() +
+        String execDetailsString = "reqId=" + reqId + "|symbol=" + contract.localSymbol() +
                 "|exchange=" + contract.exchange() + "|orderId=" + execution.orderId() + "|execId=" + execution.execId() +
                 "|execTime=" + execution.time() + "|side=" + execution.side() + "|fillAmt=" + execution.shares() +
-                "|fillPx=" + execution.price());
+                "|fillPx=" + execution.price();
+        logHandler.logInfo(execDetailsString);
+        try {
+            parserHandler.parseOrderData(execDetailsString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -316,8 +346,14 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void position(String account, Contract contract, Decimal pos, double avgCost) {
-        logHandler.logInfo("account: " + account +
-                ", symbol: " + contract.localSymbol() + ", quantity: " + pos + ", avgCost: " + avgCost);
+        String positionDataString = "symbol=" + contract.localSymbol() +
+                "|position=" + pos + "|avgCost=" + avgCost + "|account=" + account;
+        logHandler.logInfo(positionDataString);
+        try {
+            parserHandler.parsePositionData(positionDataString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -337,8 +373,9 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void accountSummary(int reqId, String account, String tag, String value, String currency) {
-        logHandler.logInfo("reqId: " + reqId + ", account: " + account +
-                ", tag: " + tag + ", value: " + value + ", currency: " + currency);
+        String accountSummaryString = "reqId: " + reqId + ", account: " + account + ", tag: " + tag +
+                ", value: " + value + ", currency: " + currency;
+        logHandler.logInfo(accountSummaryString);
     }
 
     @Override

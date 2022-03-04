@@ -53,6 +53,13 @@ public class OrderHandler {
         clientSocket.placeOrder(orderId, contract, OrderTypes.LimitOrder(side, quantity, price));
     }
 
+    public void sendMarketOrder(String symbol, String side, double quantity) {
+        Contract contract = ContractHandler.getContract(symbol);
+        int orderId = getValidOrderId();
+        orderId++;
+        clientSocket.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
+    }
+
     public static void setNextValidId(int id) {
         OrderHandler.nextValidOrderId = id;
     }
