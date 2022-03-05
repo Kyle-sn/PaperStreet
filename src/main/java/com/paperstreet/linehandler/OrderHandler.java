@@ -3,9 +3,11 @@ package com.paperstreet.linehandler;
 import com.ib.client.*;
 import com.paperstreet.marketdata.ContractHandler;
 import com.paperstreet.marketdata.EWrapperImpl;
+import com.paperstreet.utils.LogHandler;
 
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
+import static com.paperstreet.utils.ConnectionConstants.ORDER_HANDLER_CONNECTION_ID;
 
 /**
  * Main module of the Order Management System. It connects to IBKR, receives the next valid order ID,
@@ -17,11 +19,13 @@ public class OrderHandler {
     private final EClientSocket clientSocket;
     private final EReaderSignal signal;
     private EReader reader;
+    private final LogHandler logHandler;
 
     public OrderHandler() {
         this.signal = new EJavaSignal();
         EWrapperImpl wrapper = new EWrapperImpl();
         this.clientSocket = new EClientSocket(wrapper, signal);
+        logHandler = new LogHandler();
     }
 
     /**
@@ -32,7 +36,7 @@ public class OrderHandler {
      * be processed.
      */
     public void connectOrderHandler() {
-        clientSocket.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, 3 /* clientID */);
+        clientSocket.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, ORDER_HANDLER_CONNECTION_ID);
         reader = new EReader(clientSocket, signal);
         reader.start();
         new Thread(() -> {
@@ -41,7 +45,7 @@ public class OrderHandler {
                 try {
                     reader.processMsgs();
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    logHandler.logError("Exception: " + e.getMessage());
                 }
             }
         }).start();
@@ -56,7 +60,6 @@ public class OrderHandler {
     public void sendMarketOrder(String symbol, String side, double quantity) {
         Contract contract = ContractHandler.getContract(symbol);
         int orderId = getValidOrderId();
-        orderId++;
         clientSocket.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
     }
 

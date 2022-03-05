@@ -5,18 +5,24 @@ import com.ib.client.EJavaSignal;
 import com.ib.client.EReader;
 import com.ib.client.EReaderSignal;
 import com.paperstreet.marketdata.EWrapperImpl;
-import com.paperstreet.marketdata.MarketDataConstants;
+import com.paperstreet.utils.LogHandler;
+
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
+import static com.paperstreet.utils.ConnectionConstants.POSITION_HANDLER_CONNECTION_ID;
 
 public class PositionHandler {
 
     private final EClientSocket client;
     private final EReaderSignal signal;
     private EReader reader;
+    private final LogHandler logHandler;
 
     public PositionHandler() {
         this.signal = new EJavaSignal();
         EWrapperImpl wrapper = new EWrapperImpl();
         this.client = new EClientSocket(wrapper, signal);
+        logHandler = new LogHandler();
     }
 
     /**
@@ -27,7 +33,7 @@ public class PositionHandler {
      * be processed.
      */
     public void connectPositionHandler() {
-        client.eConnect(MarketDataConstants.BROKER_CONNECTION_IP, MarketDataConstants.BROKER_CONNECTION_PORT, 4 /* clientID */);
+        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, POSITION_HANDLER_CONNECTION_ID);
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
@@ -36,7 +42,7 @@ public class PositionHandler {
                 try {
                     reader.processMsgs();
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    logHandler.logError("Exception: " + e.getMessage());
                 }
             }
         }).start();

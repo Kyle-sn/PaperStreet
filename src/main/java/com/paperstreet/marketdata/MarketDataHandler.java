@@ -1,6 +1,11 @@
 package com.paperstreet.marketdata;
 
 import com.ib.client.*;
+import com.paperstreet.utils.LogHandler;
+
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
+import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
+import static com.paperstreet.utils.ConnectionConstants.MARKET_DATA_CONNECTION_ID;
 
 /**
  * Main module of the Market Data Capture. It connects to IBKR, returns callback information
@@ -11,11 +16,13 @@ public class MarketDataHandler {
     private final EClientSocket client;
     private final EReaderSignal signal;
     private EReader reader;
+    private final LogHandler logHandler;
 
     public MarketDataHandler() {
         this.signal = new EJavaSignal();
         EWrapperImpl wrapper = new EWrapperImpl();
         this.client = new EClientSocket(wrapper, signal);
+        logHandler = new LogHandler();
     }
 
     /**
@@ -26,7 +33,7 @@ public class MarketDataHandler {
      * be processed.
      */
     public void connectMarketDataHandler() {
-        client.eConnect(MarketDataConstants.BROKER_CONNECTION_IP, MarketDataConstants.BROKER_CONNECTION_PORT, 2 /* clientID */);
+        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, MARKET_DATA_CONNECTION_ID);
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
@@ -35,7 +42,7 @@ public class MarketDataHandler {
                 try {
                     reader.processMsgs();
                 } catch (Exception e) {
-                    System.out.println("Exception: " + e.getMessage());
+                    logHandler.logError("Exception: " + e.getMessage());
                 }
             }
         }).start();
@@ -50,6 +57,8 @@ public class MarketDataHandler {
      */
     public void requestMarketData(String symbol) {
         Contract contract = ContractHandler.getContract(symbol);
+        // fine to leave as static as long as there are no other methods requesting market data.
+        // will need to make dynamic if I start trading multiple symbols I think.
         int tickId = 5;
 
         client.reqMarketDataType(MarketDataConstants.MARKET_DATA_TYPE);
