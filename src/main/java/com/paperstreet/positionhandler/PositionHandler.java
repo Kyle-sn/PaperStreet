@@ -51,7 +51,7 @@ public class PositionHandler {
     /**
      * Subscribes to a specific account's information and portfolio.
      *
-     * @param bool set to true to start the subscription and to false to stop it.
+     * @param bool set to true to start the subscription and to false stop it.
      * @param accountNumber the account id for which the information is requested.
      */
     public void requestAccountUpdates(boolean bool, String accountNumber) {
@@ -59,7 +59,7 @@ public class PositionHandler {
     }
 
     /**
-     * Requests a specific account's summary. In additon to the params below, a string of desired tags
+     * Requests a specific account's summary. In addition to the params below, a string of desired tags
      * to return information for is hardcoded.
      *
      * @param reqId the unique request identifier.

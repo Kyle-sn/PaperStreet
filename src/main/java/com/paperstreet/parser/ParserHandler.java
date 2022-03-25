@@ -3,7 +3,9 @@ package com.paperstreet.parser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Write callbacks received from EWrapperImpl to a csv.
@@ -11,7 +13,8 @@ import java.time.LocalDateTime;
 public class ParserHandler {
 
     public void parseMarketData(String marketData) throws IOException {
-        File file = new File("C:\\Users\\kylek\\Desktop\\marketData.csv");
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\" + date + "_marketData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -26,7 +29,8 @@ public class ParserHandler {
     }
 
     public void parseOrderData(String orderData) throws IOException {
-        File file = new File("C:\\Users\\kylek\\Desktop\\orderData.csv");
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\" + date + "_orderData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -40,7 +44,8 @@ public class ParserHandler {
     }
 
     public void parsePositionData(String positionData) throws IOException {
-        File file = new File("C:\\Users\\kylek\\Desktop\\positionData.csv");
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\" + date + "_positionData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -54,7 +59,8 @@ public class ParserHandler {
     }
 
     public void parsePortfolioData(String portfolioData) throws IOException {
-        File file = new File("C:\\Users\\kylek\\Desktop\\portfolioData.csv");
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\" + date + "_portfolioData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -65,5 +71,11 @@ public class ParserHandler {
         writer.write(builder.toString());
         writer.write(System.lineSeparator());
         writer.close();
+    }
+
+    private String getDate() {
+        LocalDate dateObj = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return dateObj.format(formatter);
     }
 }
