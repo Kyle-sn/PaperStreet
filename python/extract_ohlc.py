@@ -24,5 +24,3 @@ def extract(file_name):
     close_px = data['price'].at_time('2022-03-28T15:00:00')
 
     return open_px, high_px, low_px, close_px
-
-extract(args.file_name)
