@@ -50,6 +50,13 @@ public class EWrapperImpl implements EWrapper {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else if (TickType.get(field) == TickType.DELAYED_OPEN || TickType.get(field) == TickType.DELAYED_CLOSE ||
+                TickType.get(field) == TickType.DELAYED_HIGH || TickType.get(field) == TickType.DELAYED_LOW) {
+            try {
+                parserHandler.parseOhlcData(priceTickString);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

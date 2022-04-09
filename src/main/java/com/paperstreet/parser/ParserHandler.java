@@ -73,6 +73,21 @@ public class ParserHandler {
         writer.close();
     }
 
+    public void parseOhlcData(String portfolioData) throws IOException {
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\" + date + "_ohlcData.csv");
+        FileWriter writer = new FileWriter(file, true);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(LocalDateTime.now());
+        builder.append(",");
+        builder.append(portfolioData);
+
+        writer.write(builder.toString());
+        writer.write(System.lineSeparator());
+        writer.close();
+    }
+
     private String getDate() {
         LocalDate dateObj = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
