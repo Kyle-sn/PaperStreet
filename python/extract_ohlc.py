@@ -10,7 +10,7 @@ args = parser.parse_args()
 os.chdir(os.path.expanduser('C:/Users/kylek/Desktop/'))
 
 def extract(file_name):
-    ''' Extract the OHLC from my market data captures.'''
+    ''' Extract the OHLC from the market data captures.'''
     data = pd.read_csv(file_name, index_col=None, names=['timestamp', 'symbol', 'type', 'price'])
 
     data['timestamp'] = data['timestamp'].apply(
