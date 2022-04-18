@@ -1,4 +1,5 @@
-from cmath import log
+''' Strategy to be backtested. '''
+
 import backtrader as bt
 
 # Create a Stratey
@@ -23,6 +24,8 @@ class TestStrategy(bt.Strategy):
         self.fast_sma = bt.indicators.MovingAverageSimple(self.datas[0], 
                         period=self.params.pfast)
 
+        self.bar_executed = 0
+
     def log(self, txt, dt=None):
         ''' Logging function for this strategy. '''
 
@@ -31,8 +34,8 @@ class TestStrategy(bt.Strategy):
 
     def next(self):
         '''
-        This method will be called for all remaining data points when 
-        the minimum period for all datas/indicators have been meet. 
+        This method will be called for all remaining data points when
+        the minimum period for all datas/indicators have been meet.
         '''
 
         # Check for open orders
@@ -43,12 +46,10 @@ class TestStrategy(bt.Strategy):
         if not self.position:
             # We are not in the market, look for a signal to OPEN trades
 
-            #If the 20 SMA is above the 50 SMA
             if self.fast_sma[0] > self.slow_sma[0] and self.fast_sma[-1] > self.slow_sma[-1]:
                 self.log(f'BUY CREATED: {self.dataclose[0]:2f}')
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.buy()
-            #Otherwise if the 20 SMA is below the 50 SMA
             elif self.fast_sma[0] < self.slow_sma[0] and self.fast_sma[-1] < self.slow_sma[-1]:
                 self.log(f'SELL CREATED: {self.dataclose[0]}')
                 # Keep track of the created order to avoid a 2nd order
@@ -60,13 +61,14 @@ class TestStrategy(bt.Strategy):
                 true_range = self.datahigh[i] - self.datalow[i]
                 range_total += true_range
             ATR = range_total / 14
-            # if any of the last 5 prices are >= the recent close - ATR, then sell
+
             if (self.dataclose[-4] - self.dataclose[0]) >= ATR:
                 self.log(f'CLOSE CREATED: {self.dataclose[0]}')
                 self.order = self.close()
 
     def notify_order(self, order):
         ''' Receives an order whenever there has been a change in one. '''
+        
         if order.status in [order.Submitted, order.Accepted]:
             # An active Buy/Sell order has been submitted/accepted - Nothing to do
             return
