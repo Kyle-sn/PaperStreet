@@ -1,6 +1,6 @@
 package com.paperstreet.strategy;
 
-import com.paperstreet.linehandler.OrderHandler;
+import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.positionhandler.PositionHandler;
 
 import java.util.concurrent.TimeUnit;
