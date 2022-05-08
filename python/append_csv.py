@@ -25,6 +25,6 @@ def append_csv_as_row(historical_file, new_file, data_type):
     historical_data = historical_data.append(new_row)
     historical_data.to_csv(historical_file, header=False, index=False)
 
-    print(f'Appended {new_file} to {historical_file}')
+    print(f'Appended data from {new_file} to {historical_file}')
 
 append_csv_as_row(args.historical_file, args.new_file, args.data_type)

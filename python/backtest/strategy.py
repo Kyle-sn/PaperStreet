@@ -54,11 +54,6 @@ class TestStrategy(bt.Strategy):
                 self.log(f'SELL CREATED: {self.dataclose[0]}')
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.sell()
-        else:
-            # We are already in the market, look for a signal to CLOSE trades
-            if len(self) >= (self.bar_executed + 3):
-                self.log(f'CLOSE CREATE {self.dataclose[0]:2f}')
-                self.order = self.close()
 
     def notify_order(self, order):
         ''' Receives an order whenever there has been a change in one. '''
