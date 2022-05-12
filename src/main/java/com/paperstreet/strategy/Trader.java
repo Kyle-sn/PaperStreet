@@ -3,6 +3,8 @@ package com.paperstreet.strategy;
 import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.positionhandler.PositionHandler;
 
+import java.io.FileNotFoundException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Trader {
@@ -10,7 +12,7 @@ public class Trader {
     public static final OrderHandler orderHandler = new OrderHandler();
     public static final PositionHandler positionHandler = new PositionHandler();
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, FileNotFoundException {
         // start up the position handler
         positionHandler.connectPositionHandler();
         positionHandler.requestAccountUpdates(true, System.getenv("ACCOUNT_NUMBER"));
@@ -19,7 +21,18 @@ public class Trader {
 
         // start up the order handler
         orderHandler.connectOrderHandler();
-        TimeUnit.SECONDS.sleep(5);
-        orderHandler.sendMarketOrder("QQQ", "BUY", 100);
+
+        placeTrade();
+    }
+
+    private static void placeTrade() throws InterruptedException, FileNotFoundException {
+        String signal = SignalReader.getSignal();
+        if (Objects.equals(signal, "buy")) {
+            TimeUnit.MINUTES.sleep(15);
+            orderHandler.sendMarketOrder("QQQ", "BUY", 100);
+        } else if (Objects.equals(signal, "sell")) {
+            TimeUnit.MINUTES.sleep(15);
+            orderHandler.sendMarketOrder("QQQ", "SELL", 100);
+        }
     }
 }
