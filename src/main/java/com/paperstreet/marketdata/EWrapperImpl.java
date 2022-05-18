@@ -3,6 +3,7 @@ package com.paperstreet.marketdata;
 import com.ib.client.*;
 import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.parser.ParserHandler;
+import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
@@ -356,6 +357,7 @@ public class EWrapperImpl implements EWrapper {
         String positionDataString = "symbol=" + contract.localSymbol() +
                 "|position=" + pos + "|avgCost=" + avgCost + "|account=" + account;
         logHandler.logInfo(positionDataString);
+        PositionChecker.setPositionBalanceBool(pos);
         try {
             parserHandler.parsePositionData(positionDataString);
         } catch (IOException e) {

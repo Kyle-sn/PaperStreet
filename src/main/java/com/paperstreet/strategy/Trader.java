@@ -1,6 +1,7 @@
 package com.paperstreet.strategy;
 
 import com.paperstreet.orderhandler.OrderHandler;
+import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.positionhandler.PositionHandler;
 
 import java.io.FileNotFoundException;
@@ -22,6 +23,8 @@ public class Trader {
         // start up the order handler
         orderHandler.connectOrderHandler();
 
+        // TODO: incorporate getPositionBalance to determine when to run placeTrade()
+        PositionChecker.getPositionBalance();
         placeTrade();
     }
 
