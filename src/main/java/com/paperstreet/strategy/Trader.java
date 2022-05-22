@@ -3,6 +3,7 @@ package com.paperstreet.strategy;
 import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.positionhandler.PositionHandler;
+import com.paperstreet.utils.LogHandler;
 
 import java.io.FileNotFoundException;
 import java.util.Objects;
@@ -12,6 +13,7 @@ public class Trader {
 
     public static final OrderHandler orderHandler = new OrderHandler();
     public static final PositionHandler positionHandler = new PositionHandler();
+    public static final LogHandler logHandler = new LogHandler();
 
     public static void main(String[] args) throws InterruptedException, FileNotFoundException {
         // start up the position handler
@@ -24,18 +26,28 @@ public class Trader {
         orderHandler.connectOrderHandler();
 
         // TODO: incorporate getPositionBalance to determine when to run placeTrade()
-        PositionChecker.getPositionBalance();
         placeTrade();
     }
 
     private static void placeTrade() throws InterruptedException, FileNotFoundException {
+        TimeUnit.SECONDS.sleep(5);
         String signal = SignalReader.getSignal();
+        boolean hasPositionBalance = PositionChecker.getPositionBalance();
+
         if (Objects.equals(signal, "buy")) {
-            TimeUnit.MINUTES.sleep(15);
-            orderHandler.sendMarketOrder("QQQ", "BUY", 100);
+            if (hasPositionBalance) {
+                logHandler.logError("Todays signal is to BUY but we already have a position.");
+            } else if (!hasPositionBalance) {
+                TimeUnit.MINUTES.sleep(15);
+                orderHandler.sendMarketOrder("QQQ", "BUY", 100);
+            }
         } else if (Objects.equals(signal, "sell")) {
-            TimeUnit.MINUTES.sleep(15);
-            orderHandler.sendMarketOrder("QQQ", "SELL", 100);
+            if (!hasPositionBalance) {
+                logHandler.logError("Todays signal is to SELL but we do not have any positions to sell");
+            } else if (hasPositionBalance) {
+                TimeUnit.MINUTES.sleep(15);
+                orderHandler.sendMarketOrder("QQQ", "SELL", 100);
+            }
         }
     }
 }
