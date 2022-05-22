@@ -3,6 +3,7 @@ package com.paperstreet.marketdata;
 import com.ib.client.*;
 import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.parser.ParserHandler;
+import com.paperstreet.positionhandler.CashChecker;
 import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.utils.LogHandler;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -45,7 +47,10 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
         String priceTickString = MarketDataConstants.SYMBOL + "," + TickType.getField(field) + "," + price;
+
         if (TickType.get(field) == TickType.DELAYED_LAST) {
+            PositionChecker.setSharePrice(price);
+
             try {
                 parserHandler.parseMarketData(priceTickString);
             } catch (IOException e) {
@@ -159,6 +164,11 @@ public class EWrapperImpl implements EWrapper {
     public void updateAccountValue(String key, String value, String currency, String accountName) {
         String accountValueString = key + "," + value + "," + currency + "," + accountName;
         logHandler.logInfo(accountValueString);
+
+        if (Objects.equals(key, "Cash Balance") && Objects.equals(currency, "USD")) {
+            CashChecker.setCashBalance(value);
+        }
+
         try {
             parserHandler.parsePortfolioData(accountValueString);
         } catch (IOException e) {
@@ -357,7 +367,7 @@ public class EWrapperImpl implements EWrapper {
         String positionDataString = "symbol=" + contract.localSymbol() +
                 "|position=" + pos + "|avgCost=" + avgCost + "|account=" + account;
         logHandler.logInfo(positionDataString);
-        PositionChecker.setPositionBalanceBool(pos);
+        PositionChecker.setPositionShareCount(pos);
         try {
             parserHandler.parsePositionData(positionDataString);
         } catch (IOException e) {

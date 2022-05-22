@@ -1,6 +1,7 @@
 package com.paperstreet.strategy;
 
 import com.paperstreet.orderhandler.OrderHandler;
+import com.paperstreet.positionhandler.CashChecker;
 import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.positionhandler.PositionHandler;
 import com.paperstreet.utils.LogHandler;
@@ -31,21 +32,29 @@ public class Trader {
     private static void placeTrade() throws InterruptedException, FileNotFoundException {
         TimeUnit.SECONDS.sleep(5);
         String signal = SignalReader.getSignal();
-        boolean hasPositionBalance = PositionChecker.getPositionBalance();
+        boolean hasPositionBalance = PositionChecker.getPositionBalanceBool();
 
         if (Objects.equals(signal, "buy")) {
             if (hasPositionBalance) {
                 logHandler.logError("Todays signal is to BUY but we already have a position.");
             } else if (!hasPositionBalance) {
                 TimeUnit.MINUTES.sleep(15);
-                orderHandler.sendMarketOrder("QQQ", "BUY", 100);
+
+                double sharePrice = PositionChecker.getSharePrice();
+                double cashBalance = CashChecker.getCashBalance();
+                double qtyToBuy = Math.floor(cashBalance / sharePrice);
+
+                orderHandler.sendMarketOrder("QQQ", "BUY", qtyToBuy);
             }
         } else if (Objects.equals(signal, "sell")) {
             if (!hasPositionBalance) {
                 logHandler.logError("Todays signal is to SELL but we do not have any positions to sell");
             } else if (hasPositionBalance) {
                 TimeUnit.MINUTES.sleep(15);
-                orderHandler.sendMarketOrder("QQQ", "SELL", 100);
+
+                double qtyToSell = PositionChecker.getPositionShareCount();
+
+                orderHandler.sendMarketOrder("QQQ", "SELL", qtyToSell);
             }
         }
     }
