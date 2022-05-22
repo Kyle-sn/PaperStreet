@@ -25,7 +25,6 @@ public class Trader {
         // start up the order handler
         orderHandler.connectOrderHandler();
 
-        // TODO: incorporate getPositionBalance to determine when to run placeTrade()
         placeTrade();
     }
 
