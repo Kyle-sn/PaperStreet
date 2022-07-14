@@ -9,7 +9,7 @@ public class PositionChecker {
     private static double sharePrice;
 
     public static void setSharePrice(double price) {
-    PositionChecker.sharePrice = price;
+        PositionChecker.sharePrice = price;
     }
 
     public static double getSharePrice() {
