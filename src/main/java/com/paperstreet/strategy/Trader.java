@@ -34,10 +34,14 @@ public class Trader {
         String signal = SignalReader.getSignal();
         boolean hasPositionBalance = PositionChecker.getPositionBalanceBool();
 
+        determineTradeDirection(signal, hasPositionBalance);
+    }
+
+    private static void determineTradeDirection(String signal, boolean hasPositionBalance) throws InterruptedException {
         if (Objects.equals(signal, "buy")) {
             if (hasPositionBalance) {
                 logHandler.logError("Todays signal is to BUY but we already have a position.");
-            } else if (!hasPositionBalance) {
+            } else {
                 TimeUnit.MINUTES.sleep(15);
 
                 double sharePrice = PositionChecker.getSharePrice();
@@ -45,16 +49,18 @@ public class Trader {
                 double qtyToBuy = Math.floor(cashBalance / sharePrice);
 
                 orderHandler.sendMarketOrder("QQQ", "BUY", qtyToBuy);
+                logHandler.logInfo("Placed a buy order of " + qtyToBuy);
             }
         } else if (Objects.equals(signal, "sell")) {
             if (!hasPositionBalance) {
                 logHandler.logError("Todays signal is to SELL but we do not have any positions to sell");
-            } else if (hasPositionBalance) {
+            } else {
                 TimeUnit.MINUTES.sleep(15);
 
                 double qtyToSell = PositionChecker.getPositionShareCount();
 
                 orderHandler.sendMarketOrder("QQQ", "SELL", qtyToSell);
+                logHandler.logInfo("Placed a sell order of " + qtyToSell);
             }
         }
     }
