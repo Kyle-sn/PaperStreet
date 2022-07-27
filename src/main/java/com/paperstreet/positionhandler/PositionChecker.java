@@ -28,7 +28,7 @@ public class PositionChecker {
     public static void setPositionBalanceBool() {
         if (currentShareCount != 0) {
             PositionChecker.currentlyHaveAPosition = true;
-        } else if (currentShareCount == 0){
+        } else {
             PositionChecker.currentlyHaveAPosition = false;
         }
     }
