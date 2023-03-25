@@ -1,3 +1,3 @@
 account,start_balance,pnl,adjustments,broker commission,exchange fees,cash movement,end_balance
-48700,12345,34,0,4.5,12.80,0,54321
-48701,54543,-657,0,36.25,123.5,20000,736547
+001,12345,34,0,4.5,12.80,0,54321
+002,54543,-657,0,36.25,123.5,20000,736547
