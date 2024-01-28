@@ -443,8 +443,12 @@ public class EWrapperImpl implements EWrapper {
     }
 
     @Override
-    public void error(int id, int errorCode, String errorMsg) {
-        logHandler.logError("Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg);
+    public void error(int id, int errorCode, String errorMsg, String advancedOrderRejectJson) {
+        String str = "Id: " + id + ", Code: " + errorCode + ", Msg: " + errorMsg;
+        if (advancedOrderRejectJson != null) {
+            str += (", AdvancedOrderRejectJson: " + advancedOrderRejectJson);
+        }
+        logHandler.logError(str);
     }
 
     @Override
@@ -654,6 +658,11 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void historicalSchedule(int i, String s, String s1, String s2, List<HistoricalSession> list) {
+
+    }
+
+    @Override
+    public void userInfo(int i, String s) {
 
     }
 }
