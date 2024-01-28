@@ -66,8 +66,16 @@ public class EWrapperImpl implements EWrapper {
         }
     }
 
+    /**
+     * Market data tick size callback. Handles all size-related ticks.
+     *
+     * @param tickerId the request's unique identifier.
+     * @param field the type of size being received (i.e. bid size)
+     * @param size the actual size. US stocks have a multiplier of 100.
+     */
     @Override
     public void tickSize(int tickerId, int field, Decimal size) {
+        logHandler.logInfo("tickerId=" + tickerId + "|field=" + TickType.get(field) + "|size=" + size);
     }
 
     @Override

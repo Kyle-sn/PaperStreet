@@ -1,10 +1,13 @@
 package com.paperstreet.marketdata;
 
 import com.ib.client.Contract;
+import com.paperstreet.utils.LogHandler;
 
 import static com.paperstreet.marketdata.MarketDataConstants.*;
 
 public class ContractHandler {
+
+    private static final LogHandler logHandler = new LogHandler();
 
     /**
      * Converts the provided symbol to a valid IBKR contract. The contract helps identify and route
@@ -20,6 +23,7 @@ public class ContractHandler {
         contract.exchange(EXCHANGE);
         contract.currency(CURRENCY);
 
+        logHandler.logInfo("Contract created for " + ticker);
         return contract;
     }
 
