@@ -17,7 +17,7 @@ public class MarketDataConstants {
     public static final String TICK_STRING = "221";
 
     /** Symbol to request market data for */
-    public static final String SYMBOL = "QQQ";
+    public static final String SYMBOL = "SPY";
 
     /** Stock security type */
     public static final String SECURITY_TYPE = "STK"; // FUT

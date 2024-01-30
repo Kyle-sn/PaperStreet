@@ -49,9 +49,10 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void tickPrice(int tickerId, int field, double price, TickAttrib attribs) {
+        TickType tickType = TickType.get(field);
         String priceTickString = MarketDataConstants.SYMBOL + "," + TickType.getField(field) + "," + price;
 
-        if (TickType.get(field) == TickType.DELAYED_LAST) {
+        if (tickType == TickType.DELAYED_LAST) {
             PositionChecker.setSharePrice(price);
 
             try {
@@ -59,8 +60,8 @@ public class EWrapperImpl implements EWrapper {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (TickType.get(field) == TickType.DELAYED_OPEN || TickType.get(field) == TickType.DELAYED_CLOSE ||
-                TickType.get(field) == TickType.DELAYED_HIGH || TickType.get(field) == TickType.DELAYED_LOW) {
+        } else if (tickType == TickType.DELAYED_OPEN || tickType == TickType.DELAYED_CLOSE ||
+                tickType == TickType.DELAYED_HIGH || tickType == TickType.DELAYED_LOW) {
             try {
                 parserHandler.parseOhlcData(priceTickString);
             } catch (IOException e) {
@@ -78,7 +79,11 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void tickSize(int tickerId, int field, Decimal size) {
-        logHandler.logInfo("tickerId=" + tickerId + "|field=" + TickType.get(field) + "|size=" + size);
+        try {
+            parserHandler.parseTickSizeData(tickerId + "," + TickType.get(field) + "," + size);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -174,7 +179,6 @@ public class EWrapperImpl implements EWrapper {
     @Override
     public void updateAccountValue(String key, String value, String currency, String accountName) {
         String accountValueString = key + "," + value + "," + currency + "," + accountName;
-        logHandler.logInfo(accountValueString);
 
         if (Objects.equals(key, "Cash Balance") && Objects.equals(currency, "USD")) {
             CashChecker.setCashBalance(value);

@@ -21,7 +21,21 @@ public class ParserHandler {
         builder.append(LocalDateTime.now());
         builder.append(",");
         builder.append(marketData);
-        System.out.println(builder);
+
+        writer.write(builder.toString());
+        writer.write(System.lineSeparator());
+        writer.close();
+    }
+
+    public void parseTickSizeData(String marketData) throws IOException {
+        String date = getDate();
+        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_tickSizeData.csv");
+        FileWriter writer = new FileWriter(file, true);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(LocalDateTime.now());
+        builder.append(",");
+        builder.append(marketData);
 
         writer.write(builder.toString());
         writer.write(System.lineSeparator());

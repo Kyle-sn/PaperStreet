@@ -1,5 +1,6 @@
 package com.paperstreet.strategy;
 
+import com.paperstreet.marketdata.MarketDataConstants;
 import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.positionhandler.CashChecker;
 import com.paperstreet.positionhandler.PositionChecker;
@@ -48,7 +49,7 @@ public class Trader {
                 double cashBalance = CashChecker.getCashBalance();
                 double qtyToBuy = Math.floor(cashBalance / sharePrice);
 
-                orderHandler.sendMarketOrder("QQQ", "BUY", qtyToBuy);
+                orderHandler.sendMarketOrder(MarketDataConstants.SYMBOL, "BUY", qtyToBuy);
                 logHandler.logInfo("Placed a buy order of " + qtyToBuy);
             }
         } else if (Objects.equals(signal, "sell")) {
@@ -59,7 +60,7 @@ public class Trader {
 
                 double qtyToSell = PositionChecker.getPositionShareCount();
 
-                orderHandler.sendMarketOrder("QQQ", "SELL", qtyToSell);
+                orderHandler.sendMarketOrder(MarketDataConstants.SYMBOL, "SELL", qtyToSell);
                 logHandler.logInfo("Placed a sell order of " + qtyToSell);
             }
         }
