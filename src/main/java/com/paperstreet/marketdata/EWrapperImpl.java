@@ -5,6 +5,7 @@ import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.parser.ParserHandler;
 import com.paperstreet.positionhandler.CashChecker;
 import com.paperstreet.positionhandler.PositionChecker;
+import com.paperstreet.positionhandler.PositionManager;
 import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
@@ -25,8 +26,10 @@ public class EWrapperImpl implements EWrapper {
     private final EClientSocket clientSocket;
     private final LogHandler logHandler;
     private final ParserHandler parserHandler;
+    private final PositionManager positionManager;
 
     public EWrapperImpl() {
+        positionManager = new PositionManager();
         parserHandler = new ParserHandler();
         readerSignal = new EJavaSignal();
         clientSocket = new EClientSocket(this, readerSignal);
@@ -208,6 +211,8 @@ public class EWrapperImpl implements EWrapper {
         logHandler.logInfo(portfolioInfoString);
         try {
             parserHandler.parsePositionData(portfolioInfoString);
+            positionManager.getPosition(contract.localSymbol(), position, marketPrice, marketValue, averageCost,
+                    unrealizedPNL, realizedPNL, accountName);
         } catch (IOException e) {
             e.printStackTrace();
         }
