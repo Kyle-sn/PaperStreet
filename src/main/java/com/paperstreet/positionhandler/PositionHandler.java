@@ -37,6 +37,10 @@ public class PositionHandler {
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
+            if (client.isConnected()) {
+                logHandler.logInfo("PositionHandler is now connected.");
+            }
+
             while (client.isConnected()) {
                 signal.waitForSignal();
                 try {
@@ -81,6 +85,4 @@ public class PositionHandler {
     public void requestPositions() {
         client.reqPositions();
     }
-
-
 }

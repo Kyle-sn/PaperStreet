@@ -1,30 +1,29 @@
-package com.paperstreet.orderhandler;
+package com.paperstreet.strategy;
 
 import com.ib.client.*;
 import com.paperstreet.marketdata.ContractHandler;
 import com.paperstreet.marketdata.EWrapperImpl;
+import com.paperstreet.marketdata.MarketDataConstants;
 import com.paperstreet.utils.LogHandler;
+
+import java.util.concurrent.TimeUnit;
 
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
-import static com.paperstreet.utils.ConnectionConstants.ORDER_HANDLER_CONNECTION_ID;
+import static com.paperstreet.utils.ConnectionConstants.STRATEGY_HANDLER_CONNECTION_ID;
 
-/**
- * Main module of the Order Management System. It connects to IBKR, receives the next valid order ID,
- * and is called by the strategy to submit orders.
- */
-public class OrderHandler {
+public class StrategyHandler {
 
-    private static int nextValidOrderId;
-    private final EClientSocket clientSocket;
+     static int nextValidOrderId;
     private final EReaderSignal signal;
+    private final EClientSocket client;
     private EReader reader;
     private final LogHandler logHandler;
 
-    public OrderHandler() {
+    public StrategyHandler() {
         this.signal = new EJavaSignal();
         EWrapperImpl wrapper = new EWrapperImpl();
-        this.clientSocket = new EClientSocket(wrapper, signal);
+        this.client = new EClientSocket(wrapper, signal);
         logHandler = new LogHandler();
     }
 
@@ -35,12 +34,16 @@ public class OrderHandler {
      * a notification flag is triggered to let other threads now that there is a message waiting to
      * be processed.
      */
-    public void connectOrderHandler() {
-        clientSocket.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, ORDER_HANDLER_CONNECTION_ID);
-        reader = new EReader(clientSocket, signal);
+    public void connectStrategyHandler() {
+        client.eConnect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, STRATEGY_HANDLER_CONNECTION_ID);
+        reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
-            while (clientSocket.isConnected()) {
+            if (client.isConnected()) {
+                logHandler.logInfo("StrategyHandler is now connected.");
+            }
+
+            while (client.isConnected()) {
                 signal.waitForSignal();
                 try {
                     reader.processMsgs();
@@ -51,29 +54,22 @@ public class OrderHandler {
         }).start();
     }
 
-    public void sendLimitOrder(String symbol, String side, double quantity, double price) {
-        Contract contract = ContractHandler.getContract(symbol);
-        int orderId = getValidOrderId();
-        clientSocket.placeOrder(orderId, contract, OrderTypes.LimitOrder(side, quantity, price));
+    public void placeTrade() throws InterruptedException {
+        TimeUnit.SECONDS.sleep(5);
+        sendMarketOrder(MarketDataConstants.SYMBOL, "BUY", 1000);
     }
 
     public void sendMarketOrder(String symbol, String side, double quantity) {
         Contract contract = ContractHandler.getContract(symbol);
         int orderId = getValidOrderId();
-        clientSocket.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
+        client.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
     }
 
     public static void setNextValidId(int id) {
-        OrderHandler.nextValidOrderId = id;
+        nextValidOrderId = id;
     }
 
-    public int getValidOrderId() {
-        return nextValidOrderId;
-    }
-
-    // for stop-loss and other secondary orders
-    public static int getAdditionalValidOrderId() {
-        nextValidOrderId+=2  ;
+    public static int getValidOrderId() {
         return nextValidOrderId;
     }
 }

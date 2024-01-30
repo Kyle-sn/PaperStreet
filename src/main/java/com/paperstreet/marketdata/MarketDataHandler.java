@@ -37,6 +37,10 @@ public class MarketDataHandler {
         reader = new EReader(client, signal);
         reader.start();
         new Thread(() -> {
+            if (client.isConnected()) {
+                logHandler.logInfo("MarketDataHandler is now connected.");
+            }
+
             while (client.isConnected()) {
                 signal.waitForSignal();
                 try {

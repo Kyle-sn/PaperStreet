@@ -1,11 +1,11 @@
 package com.paperstreet.marketdata;
 
 import com.ib.client.*;
-import com.paperstreet.orderhandler.OrderHandler;
 import com.paperstreet.parser.ParserHandler;
 import com.paperstreet.positionhandler.CashChecker;
 import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.positionhandler.PositionManager;
+import com.paperstreet.strategy.StrategyHandler;
 import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
@@ -244,7 +244,7 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void nextValidId(int orderId) {
-        OrderHandler.setNextValidId(orderId);
+        StrategyHandler.setNextValidId(orderId);
         logHandler.logInfo("Next valid Id: " + orderId);
     }
 

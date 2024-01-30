@@ -1,6 +1,6 @@
 package com.paperstreet.marketdata;
 
-public class Connect {
+public class ConnectMarketDataHandler {
 
     private static final MarketDataHandler marketDataHandler = new MarketDataHandler();
 
