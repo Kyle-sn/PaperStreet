@@ -363,7 +363,7 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void marketDataType(int reqId, int marketDataType) {
-        logHandler.logInfo("Market data type: " + marketDataType);
+        logHandler.logInfo("Market data type: " + MarketDataType.getField(marketDataType));
     }
 
     @Override
@@ -383,7 +383,6 @@ public class EWrapperImpl implements EWrapper {
     public void position(String account, Contract contract, Decimal pos, double avgCost) {
         String positionDataString = "symbol=" + contract.localSymbol() +
                 "|position=" + pos + "|avgCost=" + avgCost + "|account=" + account;
-        logHandler.logInfo(positionDataString);
         PositionChecker.setPositionShareCount(pos);
         try {
             parserHandler.parsePositionData(positionDataString);

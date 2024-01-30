@@ -43,7 +43,7 @@ public class Trader {
             if (hasPositionBalance) {
                 logHandler.logError("Todays signal is to BUY but we already have a position.");
             } else {
-                TimeUnit.MINUTES.sleep(15);
+                TimeUnit.MINUTES.sleep(2);
 
                 double sharePrice = PositionChecker.getSharePrice();
                 double cashBalance = CashChecker.getCashBalance();
