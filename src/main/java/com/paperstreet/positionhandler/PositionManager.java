@@ -5,27 +5,31 @@ import com.ib.client.Decimal;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Collect position information to be monitored.
+ */
 public class PositionManager {
 
-    private Map<String, Position> positionInfo;
+    private Map<String, Positions> positionsMap;
 
     public PositionManager() {
-        positionInfo = new HashMap<>();
+        positionsMap = new HashMap<>();
     }
 
-    public void getPosition(String symbol, Decimal quantity, double marketPrice, double marketValue,
-                            double averageCost, double unrealizedPnl, double realizedPnl, String accountName) {
+    public void getPositions(String symbol, Decimal quantity, double marketPrice,
+                             double marketValue, double averageCost, double unrealizedPnl,
+                             double realizedPnl, String accountName) {
 
-        Position newPosition = new Position();
-        newPosition.setSymbol(symbol);
-        newPosition.setQuantity(quantity);
-        newPosition.setMarketPrice(marketPrice);
-        newPosition.setMarketValue(marketValue);
-        newPosition.setAverageCost(averageCost);
-        newPosition.setUnrealizedPnl(unrealizedPnl);
-        newPosition.setRealizedPnl(realizedPnl);
+        Positions positions = new Positions();
+        positions.setSymbol(symbol);
+        positions.setQuantity(quantity);
+        positions.setMarketPrice(marketPrice);
+        positions.setMarketValue(marketValue);
+        positions.setAverageCost(averageCost);
+        positions.setUnrealizedPnl(unrealizedPnl);
+        positions.setRealizedPnl(realizedPnl);
+        positions.setAccountNumber(accountName);
 
-        positionInfo.put(accountName, newPosition);
+        positionsMap.put(symbol, positions);
     }
-
 }

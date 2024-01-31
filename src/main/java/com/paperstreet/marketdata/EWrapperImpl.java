@@ -2,8 +2,6 @@ package com.paperstreet.marketdata;
 
 import com.ib.client.*;
 import com.paperstreet.parser.ParserHandler;
-import com.paperstreet.positionhandler.CashChecker;
-import com.paperstreet.positionhandler.PositionChecker;
 import com.paperstreet.positionhandler.PositionManager;
 import com.paperstreet.strategy.StrategyHandler;
 import com.paperstreet.utils.LogHandler;
@@ -12,7 +10,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -53,8 +50,6 @@ public class EWrapperImpl implements EWrapper {
         String priceTickString = MarketDataConstants.SYMBOL + "," + TickType.getField(field) + "," + price;
 
         if (tickType == TickType.DELAYED_LAST) {
-            PositionChecker.setSharePrice(price);
-
             try {
                 parserHandler.parseMarketData(priceTickString);
             } catch (IOException e) {
@@ -178,12 +173,8 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void updateAccountValue(String key, String value, String currency, String accountName) {
+
         String accountValueString = key + "," + value + "," + currency + "," + accountName;
-
-        if (Objects.equals(key, "Cash Balance") && Objects.equals(currency, "USD")) {
-            CashChecker.setCashBalance(value);
-        }
-
         try {
             parserHandler.parsePortfolioData(accountValueString);
         } catch (IOException e) {
@@ -215,7 +206,7 @@ public class EWrapperImpl implements EWrapper {
         logHandler.logInfo(portfolioInfoString);
         try {
             parserHandler.parsePositionData(portfolioInfoString);
-            positionManager.getPosition(contract.localSymbol(), position, marketPrice, marketValue, averageCost,
+            positionManager.getPositions(contract.localSymbol(), position, marketPrice, marketValue, averageCost,
                     unrealizedPNL, realizedPNL, accountName);
         } catch (IOException e) {
             e.printStackTrace();
@@ -372,23 +363,16 @@ public class EWrapperImpl implements EWrapper {
     }
 
     /**
-     * Provides the portfolio's open positions.
+     * Provides the portfolio's open positions if reqPositions is invoked.
      *
-     * @param account the account holding the position.
-     * @param contract the position's Contract.
-     * @param pos the number of positions held.
-     * @param avgCost the average cost of the position.
+     * @param accountName the accountName holding the quantity.
+     * @param contract the quantity's Contract.
+     * @param quantity the number of positions held.
+     * @param averageCost the average cost of the quantity.
      */
     @Override
-    public void position(String account, Contract contract, Decimal pos, double avgCost) {
-        String positionDataString = "symbol=" + contract.localSymbol() +
-                "|position=" + pos + "|avgCost=" + avgCost + "|account=" + account;
-        PositionChecker.setPositionShareCount(pos);
-        try {
-            parserHandler.parsePositionData(positionDataString);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void position(String accountName, Contract contract, Decimal quantity, double averageCost) {
+
     }
 
     @Override

@@ -2,7 +2,10 @@ package com.paperstreet.positionhandler;
 
 import com.ib.client.Decimal;
 
-public class Position {
+/**
+ * Get and set position information returned from EWrapperImpl::updatePortfolio.
+ */
+public class Positions {
 
     private String symbol;
     private Decimal quantity;
@@ -13,19 +16,7 @@ public class Position {
     private double realizedPnl;
     private String accountNumber;
 
-    public Position() {
-    }
-
-    public Position(String symbol, Decimal quantity, double marketPrice, double marketValue, double averageCost,
-                    double unrealizedPnl, double realizedPnl, String accountNumber) {
-        this.symbol = symbol;
-        this.quantity = quantity;
-        this.marketPrice = marketPrice;
-        this.marketValue = marketValue;
-        this.averageCost = averageCost;
-        this.unrealizedPnl = unrealizedPnl;
-        this.realizedPnl = realizedPnl;
-        this.accountNumber = accountNumber;
+    public Positions() {
     }
 
     public String getSymbol() {
