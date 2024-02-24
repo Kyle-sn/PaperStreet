@@ -1,0 +1,8 @@
+{
+  "strategy_id": 9469,
+  "paramters": {
+    "symbol": "QQQ",
+    "max_pos": 1000,
+    "can_short": true
+  }
+}
