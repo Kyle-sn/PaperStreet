@@ -6,7 +6,10 @@ import com.paperstreet.marketdata.EWrapperImpl;
 import com.paperstreet.marketdata.MarketDataConstants;
 import com.paperstreet.utils.LogHandler;
 
+import java.io.FileReader;
 import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
@@ -71,5 +74,19 @@ public class StrategyHandler {
 
     public static int getValidOrderId() {
         return nextValidOrderId;
+    }
+
+    public static int getMaxPositionParam() {
+        try (FileReader reader = new FileReader("C:\\Users\\kylek\\Desktop\\repos\\PaperStreet\\src\\main\\java\\com\\paperstreet\\strategy\\strategy_parameters.json")) {
+            JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
+
+            JSONObject parameters = jsonObject.getJSONObject("paramters");
+
+            System.out.println(parameters.getInt("max_pos"));
+            return parameters.getInt("max_pos");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 }
