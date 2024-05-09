@@ -18,6 +18,6 @@ fig = make_subplots(rows=2, cols=1,
 fig.add_trace(go.Scatter(x=data['time'], y=data['cumulative_pnl']),row=1, col=1)
 fig.add_trace(go.Scatter(x=data['time'], y=data['current_inventory_size']),row=2, col=1)
 
-fig.update_layout(height=750, width=1000, title_text="Strategy Visualizer")
+fig.update_layout(height=750, width=1000, title_text="Strategy Visualizer", showlegend=False)
 
 fig.show()
