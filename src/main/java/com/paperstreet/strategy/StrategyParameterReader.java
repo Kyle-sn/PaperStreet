@@ -7,6 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 public class StrategyParameterReader {
+
+    public static void main(String[] args) throws FileNotFoundException {
+        getParam("can_short");
+    }
     public static void getParam(String param) throws FileNotFoundException {
         try {
             FileReader reader = readStrategyParams();
@@ -38,7 +42,8 @@ public class StrategyParameterReader {
     }
 
     private static boolean getCanShort(String param, JSONObject parameters) {
-        return Boolean.parseBoolean(param);
+        String canShort = parameters.getString(param);
+        return Boolean.parseBoolean(canShort);
     }
 
     public static FileReader readStrategyParams() throws FileNotFoundException {
