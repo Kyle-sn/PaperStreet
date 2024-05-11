@@ -3,6 +3,6 @@
   "parameters": {
     "symbol": "QQQ",
     "max_pos": 1000,
-    "can_short": "True"
+    "can_short": "false"
   }
 }

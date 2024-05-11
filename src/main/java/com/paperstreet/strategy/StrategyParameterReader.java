@@ -1,5 +1,6 @@
 package com.paperstreet.strategy;
 
+import com.paperstreet.utils.LogHandler;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -8,10 +9,16 @@ import java.io.FileReader;
 
 public class StrategyParameterReader {
 
-    public static void main(String[] args) throws FileNotFoundException {
-        getParam("can_short");
-    }
-    public static void getParam(String param) throws FileNotFoundException {
+    private static final LogHandler logHandler = new LogHandler();
+
+    /**
+     * Reads in a parameter when called and tries to find that parameter in strategy_parameters.json.
+     *
+     * @param param a parameter name in string format that should be a key found in strategy_parameters.json.
+     * @return the relevant value associated with the key found in strategy_parameters.json
+     */
+    public static Object getParam(String param) {
+        //TODO: rethink having this as an Object method
         try {
             FileReader reader = readStrategyParams();
             JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
@@ -19,17 +26,18 @@ public class StrategyParameterReader {
 
             switch (param) {
                 case "symbol":
-                    getSymbol(param, parametersJson);
-                    break;
+                    return getSymbol(param, parametersJson);
                 case "max_pos":
-                    getMaxPosition(param, parametersJson);
-                    break;
+                    return getMaxPosition(param, parametersJson);
                 case "can_short":
-                    getCanShort(param, parametersJson);
-                    break;
+                    return getCanShort(param, parametersJson);
+                default:
+                    logHandler.logError("Invalid parameter being passed: " + param);
+                    return null;
             }
         } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + e.getMessage());
+            logHandler.logError("File not found: " + e.getMessage());
+            return null;
         }
     }
 
@@ -47,8 +55,7 @@ public class StrategyParameterReader {
     }
 
     public static FileReader readStrategyParams() throws FileNotFoundException {
-        FileReader reader = new FileReader(
+        return new FileReader(
                 "C:\\Users\\kylek\\repos\\PaperStreet\\src\\main\\java\\com\\paperstreet\\strategy\\strategy_parameters.json");
-        return reader;
     }
 }
