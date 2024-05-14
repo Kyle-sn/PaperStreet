@@ -14,7 +14,7 @@ public class OrderTypes {
      * @param quantity amount to trade
      * @return a market order
      */
-    public static Order MarketOrder(String action, double quantity) {
+    public static Order MarketOrder(String action, int quantity) {
         Order order = new Order();
         order.action(action);
         order.orderType("MKT");

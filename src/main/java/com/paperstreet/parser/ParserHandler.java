@@ -14,7 +14,7 @@ public class ParserHandler {
 
     public void parseMarketData(String marketData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_marketData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_marketData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -29,7 +29,7 @@ public class ParserHandler {
 
     public void parseTickSizeData(String marketData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_tickSizeData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_tickSizeData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -44,7 +44,7 @@ public class ParserHandler {
 
     public void parseOrderData(String orderData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_orderData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_orderData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -59,7 +59,7 @@ public class ParserHandler {
 
     public void parsePositionData(String positionData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_positionData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -74,7 +74,7 @@ public class ParserHandler {
 
     public void parsePortfolioData(String portfolioData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_portfolioData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_portfolioData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
@@ -89,7 +89,7 @@ public class ParserHandler {
 
     public void parseOhlcData(String portfolioData) throws IOException {
         String date = getDate();
-        File file = new File("C:\\Users\\kylek\\Desktop\\data\\" + date + "_ohlcData.csv");
+        File file = new File("C:\\Users\\kylek\\data\\" + date + "_ohlcData.csv");
         FileWriter writer = new FileWriter(file, true);
 
         StringBuilder builder = new StringBuilder();
