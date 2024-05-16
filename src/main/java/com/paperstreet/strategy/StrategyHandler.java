@@ -72,18 +72,19 @@ public class StrategyHandler {
         }
 
         logHandler.logInfo("Current position size is " + posSize);
+        int strategyId = 9469;
         //TODO: read in signal size and side so it isnt hardcoded below
         String signalSide = "SELL";
         int quantity = 500;
-        if (signalSide == "SELL") {
+        if (signalSide.equals("SELL")) {
             quantity = quantity * -1;
         }
 
-        Object symbolObj = StrategyParameterReader.getParam("symbol");
+        Object symbolObj = StrategyParameterReader.getParam("symbol", strategyId);
         assert symbolObj != null;
         String symbol = symbolObj.toString();
 
-        Object maxPosObj = StrategyParameterReader.getParam("max_pos");
+        Object maxPosObj = StrategyParameterReader.getParam("max_pos", strategyId);
         assert maxPosObj != null;
         int maxPos = (Integer) maxPosObj;
 
@@ -94,7 +95,7 @@ public class StrategyHandler {
             return;
         }
 
-        Object canShortObj = StrategyParameterReader.getParam("can_short");
+        Object canShortObj = StrategyParameterReader.getParam("can_short", strategyId);
         assert canShortObj != null;
         boolean canShort = (boolean) canShortObj;
 

@@ -1,6 +1,7 @@
 package com.paperstreet.strategy;
 
 import com.paperstreet.utils.LogHandler;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -17,28 +18,36 @@ public class StrategyParameterReader {
      * @param param a parameter name in string format that should be a key found in strategy_parameters.json.
      * @return the relevant value associated with the key found in strategy_parameters.json
      */
-    public static Object getParam(String param) {
+    public static Object getParam(String param, int strategyId) {
         //TODO: rethink having this as an Object method
         try {
             FileReader reader = readStrategyParams();
             JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
-            JSONObject parametersJson = jsonObject.getJSONObject("parameters");
+            JSONArray strategiesArray = jsonObject.getJSONArray("strategies");
 
-            switch (param) {
-                case "symbol":
-                    return getSymbol(param, parametersJson);
-                case "max_pos":
-                    return getMaxPosition(param, parametersJson);
-                case "can_short":
-                    return getCanShort(param, parametersJson);
-                default:
-                    logHandler.logError("Invalid parameter being passed: " + param);
-                    return null;
+            for (int i = 0; i < strategiesArray.length(); i++) {
+                JSONObject strategy = strategiesArray.getJSONObject(i);
+                if (strategy.getInt("strategy_id") == strategyId) {
+                    JSONObject parametersJson = strategy.getJSONObject("parameters");
+
+                    switch (param) {
+                        case "symbol":
+                            return getSymbol(param, parametersJson);
+                        case "max_pos":
+                            return getMaxPosition(param, parametersJson);
+                        case "can_short":
+                            return getCanShort(param, parametersJson);
+                        default:
+                            logHandler.logError("Invalid parameter being passed: " + param);
+                            return null;
+                    }
+                }
             }
         } catch (FileNotFoundException e) {
             logHandler.logError("File not found: " + e.getMessage());
             return null;
         }
+        return null;
     }
 
     private static int getMaxPosition(String param, JSONObject parameters) {

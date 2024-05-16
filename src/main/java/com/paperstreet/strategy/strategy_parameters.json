@@ -1,8 +1,28 @@
 {
-  "strategy_id": 9469,
-  "parameters": {
-    "symbol": "QQQ",
-    "max_pos": 1000,
-    "can_short": "false"
-  }
+  "strategies": [
+    {
+      "strategy_id": 9469,
+      "parameters": {
+        "symbol": "QQQ",
+        "max_pos": 1000,
+        "can_short": "True"
+      }
+    },
+    {
+      "strategy_id": 123,
+      "parameters": {
+        "symbol": "QQQ",
+        "max_pos": 10,
+        "can_short": "False"
+      }
+    },
+    {
+      "strategy_id": 1234,
+      "parameters": {
+        "symbol": "QQQ",
+        "max_pos": 333,
+        "can_short": "True"
+      }
+    }
+  ]
 }
