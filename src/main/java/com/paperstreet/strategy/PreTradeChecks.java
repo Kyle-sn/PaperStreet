@@ -12,14 +12,18 @@ public class PreTradeChecks {
     public static boolean passedPreTradeChecks(int strategyId, String signalSide, int quantity) {
         quantity = adjustQuantityDirection(quantity, signalSide);
 
-        Object canShortObj = StrategyParameterReader.getParam("can_short", strategyId);
-        assert canShortObj != null;
-        boolean canShort = (boolean) canShortObj;
+        boolean canShort = canShort(strategyId);
         boolean isTryingToShort = checkIfTryingToShort(quantity);
         boolean tradeSizeIsValid = checkValidTradeSize(quantity, strategyId);
 
         return (tradeSizeIsValid && canShort && isTryingToShort) ||
                 (tradeSizeIsValid && !isTryingToShort);
+    }
+
+    public static boolean canShort(int strategyId) {
+        Object canShortObj = StrategyParameterReader.getParam("can_short", strategyId);
+        assert canShortObj != null;
+        return (boolean) canShortObj;
     }
 
     public static boolean checkIfTryingToShort(int quantity) {
