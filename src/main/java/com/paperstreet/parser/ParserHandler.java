@@ -17,12 +17,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_marketData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append(",");
-        builder.append(marketData);
+        String marketDataWithDate = LocalDateTime.now() + "," + marketData;
 
-        writer.write(builder.toString());
+        writer.write(marketDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
@@ -32,12 +29,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_tickSizeData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append(",");
-        builder.append(marketData);
+        String tickSizeDataWithDate = LocalDateTime.now() + "," + marketData;
 
-        writer.write(builder.toString());
+        writer.write(tickSizeDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
@@ -47,12 +41,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_orderData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append("|");
-        builder.append(orderData);
+        String orderDataWithDate = LocalDateTime.now() + "|" + orderData;
 
-        writer.write(builder.toString());
+        writer.write(orderDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
@@ -62,12 +53,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append("|");
-        builder.append(positionData);
+        String positionDataWithDate = LocalDateTime.now() + "|" + positionData;
 
-        writer.write(builder.toString());
+        writer.write(positionDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
@@ -77,12 +65,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_portfolioData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append(",");
-        builder.append(portfolioData);
+        String portfolioDataWithDate = LocalDateTime.now() + "," + portfolioData;
 
-        writer.write(builder.toString());
+        writer.write(portfolioDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
@@ -92,12 +77,9 @@ public class ParserHandler {
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_ohlcData.csv");
         FileWriter writer = new FileWriter(file, true);
 
-        StringBuilder builder = new StringBuilder();
-        builder.append(LocalDateTime.now());
-        builder.append(",");
-        builder.append(portfolioData);
+        String ohlcDataWithDate = LocalDateTime.now() + "," + portfolioData;
 
-        writer.write(builder.toString());
+        writer.write(ohlcDataWithDate);
         writer.write(System.lineSeparator());
         writer.close();
     }
