@@ -1,28 +1,19 @@
 package com.paperstreet.strategy;
 
 import com.ib.client.*;
-import com.opencsv.exceptions.CsvValidationException;
 import com.paperstreet.marketdata.ContractHandler;
 import com.paperstreet.marketdata.EWrapperImpl;
 import com.paperstreet.utils.LogHandler;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
 import static com.paperstreet.utils.ConnectionConstants.STRATEGY_HANDLER_CONNECTION_ID;
 
-//TODO: create tests that cover the following
-// quantity != 0
-// correctly negating quantity if signal == SELL
-// checkValidTradeSize
-// quantityAfterTrade < 0 && !canShort
-
 public class StrategyHandler {
 
     static int nextValidOrderId;
-    static int posSize;
     private final EReaderSignal signal;
     private final EClientSocket client;
     private EReader reader;
@@ -65,50 +56,21 @@ public class StrategyHandler {
     public void placeTrade() throws InterruptedException {
         TimeUnit.SECONDS.sleep(2);
 
-        try {
-            posSize = StrategyUtils.readPositionData();
-        } catch (CsvValidationException | IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        logHandler.logInfo("Current position size is " + posSize);
-        int strategyId = 9469;
-        //TODO: read in signal size and side so it isnt hardcoded below
+        // TEMPORARY ///////////////
+        int strategyId = 1234;
         String signalSide = "SELL";
         int quantity = 500;
-        if (signalSide.equals("SELL")) {
-            quantity = quantity * -1;
+        ////////////////////////////
+
+        String symbol = getSymbol(strategyId);
+
+        if (PreTradeChecks.passedPreTradeChecks(strategyId, signalSide, quantity)) {
+            sendMarketOrder(symbol, signalSide, quantity);
+        } else {
+            logHandler.logError("Pre-trade checks failed. Strategy " + strategyId + " tried to " +
+                    signalSide + " " + quantity + " of " + symbol + ". Check the current position size " +
+                    "and if the strategy is allowed to short.");
         }
-
-        Object symbolObj = StrategyParameterReader.getParam("symbol", strategyId);
-        assert symbolObj != null;
-        String symbol = symbolObj.toString();
-
-        Object maxPosObj = StrategyParameterReader.getParam("max_pos", strategyId);
-        assert maxPosObj != null;
-        int maxPos = (Integer) maxPosObj;
-
-        boolean validTradeSize = checkValidTradeSize(quantity, maxPos);
-        if (!validTradeSize) {
-            logHandler.logError("Error placing trade. Trade quantity of " + quantity +
-                    " is greater than the configured max position limit of " + maxPos);
-            return;
-        }
-
-        Object canShortObj = StrategyParameterReader.getParam("can_short", strategyId);
-        assert canShortObj != null;
-        boolean canShort = (boolean) canShortObj;
-
-        // According to IBKR "For general account types, a SELL order will be able to enter a short position
-        // automatically if the order quantity is larger than your current long position."
-        //TODO: create a method to do the below check. Will need for future tests.
-        int quantityAfterTrade = quantity - posSize;
-        if (quantityAfterTrade < 0 && !canShort) {
-            logHandler.logError("Error placing trade. If trade is placed, the position will be negative and " +
-                    "this strategy is not configured to trade short.");
-            return;
-        }
-        sendMarketOrder(symbol, signalSide, quantity);
     }
 
     public void sendMarketOrder(String symbol, String side, int quantity) {
@@ -117,8 +79,10 @@ public class StrategyHandler {
         client.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
     }
 
-    private static boolean checkValidTradeSize(int quantity, int maxPos) {
-        return quantity <= maxPos;
+    public static String getSymbol(int strategyId) {
+        Object symbolObj = StrategyParameterReader.getParam("symbol", strategyId);
+        assert symbolObj != null;
+        return (String) symbolObj;
     }
 
     public static void setNextValidId(int id) {
