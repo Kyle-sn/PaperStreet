@@ -84,6 +84,15 @@ public class ParserHandler {
         writer.close();
     }
 
+    public void parseHistoricalData(String historicalData) throws IOException {
+        File file = new File("C:\\Users\\kylek\\data\\market_data\\ibkr\\historicalData.csv");
+        FileWriter writer = new FileWriter(file, true);
+
+        writer.write(historicalData);
+        writer.write(System.lineSeparator());
+        writer.close();
+    }
+
     private String getDate() {
         LocalDate dateObj = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");

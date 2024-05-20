@@ -302,7 +302,13 @@ public class EWrapperImpl implements EWrapper {
 
     @Override
     public void historicalData(int reqId, Bar bar) {
-
+        String barData = bar.time() + "," + bar.open() + "," + bar.high() + "," + bar.low() + "," +
+                bar.close() + "," + bar.volume() + "," + bar.wap() + "," + bar.count();
+        try {
+            parserHandler.parseHistoricalData(barData);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
