@@ -1,5 +1,7 @@
 import json
 
+from python.backtest.vectorbt.backtest import promote_strategy
+
 
 def write_parameters():
     params_file_path = ("C:\\Users\\kylek\\repos\\PaperStreet\\src\\main\\java\\com"
@@ -20,20 +22,36 @@ def write_parameters():
 
 
 def get_parameters():
-    # TODO: eventually get the hardcoded information from the research workflow
-    strategy_id = 1234 # TODO: dynamically assign a strategy ID
-    symbol = "QQQ"
-    max_pos = 10
-    can_short = False
+    symbol, ma_fast_period, ma_slow_period, direction, size = promote_strategy()
+
+    strategy_id = 456
+    signal = 'ma_cross'
+    symbol = symbol
+    max_pos = size
+    if direction == 'longonly':
+        can_short = "False"
+    else:
+        can_short = "True"
 
     params = {
         "strategy_id": strategy_id,
         "parameters": {
             "symbol": symbol,
             "max_pos": max_pos,
-            "can_short": can_short
+            "can_short": can_short,
+            "signal": {
+                "signal_name": signal,
+                "fast_period": ma_fast_period,
+                "slow_period": ma_slow_period
+            }
         }
     }
 
     return json.dumps(params)
 
+
+write_parameters()
+
+#TODO: dynamically assign a strategy ID. Start from 1 and go up until an ID number isnt being used
+# - read all strategies in param file
+# - find the highest int value then increase by 1

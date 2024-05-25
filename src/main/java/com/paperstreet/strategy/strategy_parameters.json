@@ -23,6 +23,19 @@
         "max_pos": 333,
         "can_short": "True"
       }
+    },
+    {
+      "strategy_id": 456,
+      "parameters": {
+        "symbol": "QQQ",
+        "max_pos": 100,
+        "can_short": "False",
+        "signal": {
+          "signal_name": "ma_cross",
+          "fast_period": 10,
+          "slow_period": 50
+        }
+      }
     }
   ]
 }
