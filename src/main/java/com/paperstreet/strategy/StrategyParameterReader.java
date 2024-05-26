@@ -37,6 +37,10 @@ public class StrategyParameterReader {
                             return getMaxPosition(param, parametersJson);
                         case "can_short":
                             return getCanShort(param, parametersJson);
+                        case "signal_name":
+                        case "fast_period":
+                        case "slow_period":
+                                return getSignalParameter(param, parametersJson);
                         default:
                             logHandler.logError("Invalid parameter being passed: " + param);
                             return null;
@@ -61,6 +65,21 @@ public class StrategyParameterReader {
     private static boolean getCanShort(String param, JSONObject parameters) {
         String canShort = parameters.getString(param);
         return Boolean.parseBoolean(canShort);
+    }
+
+    private static Object getSignalParameter(String param, JSONObject parameters) {
+        if (parameters.has("signal")) {
+            JSONObject signalJson = parameters.getJSONObject("signal");
+            if (signalJson.has(param)) {
+                return signalJson.get(param);
+            } else {
+                logHandler.logError("Signal parameter not found: " + param);
+                return null;
+            }
+        } else {
+            logHandler.logError("Signal object not found in parameters");
+            return null;
+        }
     }
 
     public static FileReader readStrategyParams() throws FileNotFoundException {
