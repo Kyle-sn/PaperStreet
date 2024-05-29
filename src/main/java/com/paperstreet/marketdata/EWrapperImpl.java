@@ -204,13 +204,6 @@ public class EWrapperImpl implements EWrapper {
                 averageCost + "|unrealizedPnL=" + unrealizedPNL + "|realizedPnL=" + realizedPNL +
                 "|accountName=" + accountName;
         logHandler.logInfo(portfolioInfoString);
-        try {
-            parserHandler.parsePositionData(portfolioInfoString);
-            positionManager.getPositions(contract.localSymbol(), position, marketPrice, marketValue, averageCost,
-                    unrealizedPNL, realizedPNL, accountName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -378,7 +371,17 @@ public class EWrapperImpl implements EWrapper {
      */
     @Override
     public void position(String accountName, Contract contract, Decimal quantity, double averageCost) {
+        String positionInfoString = "symbol=" + contract.localSymbol() + "|quantity=" + quantity +
+                "|averageCost=" + averageCost + "|accountName=" + accountName;
+        logHandler.logInfo(positionInfoString);
 
+        positionManager.getPositions(contract.localSymbol(), quantity, averageCost, accountName);
+
+        try {
+            parserHandler.parsePositionData(positionInfoString);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

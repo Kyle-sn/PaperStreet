@@ -9,11 +9,7 @@ public class Positions {
 
     private String symbol;
     private Decimal quantity;
-    private double marketPrice;
-    private double marketValue;
     private double averageCost;
-    private double unrealizedPnl;
-    private double realizedPnl;
     private String accountNumber;
 
     public Positions() {
@@ -35,44 +31,12 @@ public class Positions {
         this.quantity = quantity;
     }
 
-    public double getMarketPrice() {
-        return marketPrice;
-    }
-
-    public void setMarketPrice(double marketPrice) {
-        this.marketPrice = marketPrice;
-    }
-
-    public double getMarketValue() {
-        return marketValue;
-    }
-
-    public void setMarketValue(double marketValue) {
-        this.marketValue = marketValue;
-    }
-
     public double getAverageCost() {
         return averageCost;
     }
 
     public void setAverageCost(double averageCost) {
         this.averageCost = averageCost;
-    }
-
-    public double getUnrealizedPnl() {
-        return unrealizedPnl;
-    }
-
-    public void setUnrealizedPnl(double unrealizedPnl) {
-        this.unrealizedPnl = unrealizedPnl;
-    }
-
-    public double getRealizedPnl() {
-        return realizedPnl;
-    }
-
-    public void setRealizedPnl(double realizedPnl) {
-        this.realizedPnl = realizedPnl;
     }
 
     public String getAccountNumber() {
