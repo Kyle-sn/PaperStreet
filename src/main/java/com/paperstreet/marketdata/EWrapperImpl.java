@@ -7,6 +7,8 @@ import com.paperstreet.strategy.StrategyHandler;
 import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -377,11 +379,12 @@ public class EWrapperImpl implements EWrapper {
 
         positionManager.getPositions(contract.localSymbol(), quantity, averageCost, accountName);
 
-        try {
-            parserHandler.parsePositionData(positionInfoString);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //TODO: look into creating a method for getting the date as the below will probably be usefull
+        // elsewhere in this class.
+        LocalDate dateObj = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String date = dateObj.format(formatter);
+        positionManager.savePositionsToCsv("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
     }
 
     @Override

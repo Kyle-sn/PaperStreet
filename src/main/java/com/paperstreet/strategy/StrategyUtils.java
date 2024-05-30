@@ -8,6 +8,8 @@ import com.opencsv.exceptions.CsvValidationException;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class StrategyUtils {
 
@@ -19,30 +21,30 @@ public class StrategyUtils {
      * @throws IOException
      */
     public static int readPositionData() throws IOException, CsvValidationException {
-        //TODO: dynamically populate which position file to read based on the current trade date.
-        FileReader file = new FileReader("C:\\Users\\kylek\\data\\20240512_positionData.csv");
+        String date = getDate();
+        FileReader file = new FileReader("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
 
         CSVParser parser = new CSVParserBuilder()
-                .withSeparator('|')
+                .withSeparator(',')
                 .build();
 
         CSVReader reader = new CSVReaderBuilder(file)
                 .withCSVParser(parser)
                 .build();
-
+        // skip to the second last row
         reader.skip(countCsvRows());
+        // read the last row
         String[] nextRecord = reader.readNext();
-        String[] posEntry = nextRecord[2].split("=");
 
-        return Integer.parseInt(posEntry[1]);
+        return Integer.parseInt(nextRecord[1]);
     }
 
     private static int countCsvRows() throws IOException, CsvValidationException {
-        //TODO: dynamically populate which position file to read based on the current trade date.
-        FileReader file = new FileReader("C:\\Users\\kylek\\data\\20240512_positionData.csv");
+        String date = getDate();
+        FileReader file = new FileReader("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
 
         CSVParser parser = new CSVParserBuilder()
-                .withSeparator('|')
+                .withSeparator(',')
                 .build();
 
         CSVReader reader = new CSVReaderBuilder(file)
@@ -59,5 +61,11 @@ public class StrategyUtils {
         file.close();
         // return the number of rows in the file minus one so we can then read the last row
         return counter - 1;
+    }
+
+    private static String getDate() {
+        LocalDate dateObj = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return dateObj.format(formatter);
     }
 }

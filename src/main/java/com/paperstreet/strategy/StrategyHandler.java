@@ -57,9 +57,9 @@ public class StrategyHandler {
         TimeUnit.SECONDS.sleep(2);
 
         // TEMPORARY ///////////////
-        int strategyId = 1234;
-        String signalSide = "SELL";
-        int quantity = 500;
+        int strategyId = 456;
+        String signalSide = "BUY";
+        int quantity = 6;
         ////////////////////////////
 
         String symbol = getSymbol(strategyId);
