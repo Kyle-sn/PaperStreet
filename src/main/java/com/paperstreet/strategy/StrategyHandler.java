@@ -76,7 +76,7 @@ public class StrategyHandler {
     public void sendMarketOrder(String symbol, String side, int quantity) {
         Contract contract = ContractHandler.getContract(symbol);
         int orderId = getValidOrderId();
-        client.placeOrder(orderId, contract, OrderTypes.MarketOrder(side, quantity));
+        client.placeOrder(orderId, contract, OrderTypes.marketOrder(side, quantity));
     }
 
     public static String getSymbol(int strategyId) {

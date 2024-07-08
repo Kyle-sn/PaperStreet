@@ -14,7 +14,7 @@ public class OrderTypes {
      * @param quantity amount to trade
      * @return a market order
      */
-    public static Order MarketOrder(String action, int quantity) {
+    public static Order marketOrder(String action, int quantity) {
         Order order = new Order();
         order.action(action);
         order.orderType("MKT");
@@ -32,7 +32,7 @@ public class OrderTypes {
      * @param limitPrice limit price
      * @return a limit order
      */
-    public static Order LimitOrder(String action, double quantity, double limitPrice) {
+    public static Order limitOrder(String action, double quantity, double limitPrice) {
         Order order = new Order();
         order.action(action);
         order.orderType("LMT");
@@ -54,7 +54,7 @@ public class OrderTypes {
      * @param stopPrice stop price
      * @return a stop order
      */
-    public static Order Stop(String action, double quantity, double stopPrice) {
+    public static Order stop(String action, double quantity, double stopPrice) {
         Order order = new Order();
         order.action(action);
         order.orderType("STP");
@@ -76,7 +76,7 @@ public class OrderTypes {
      * @param stopPrice stop price
      * @return stop limit order
      */
-    public static Order StopLimit(String action, double quantity, double limitPrice, double stopPrice) {
+    public static Order stopLimit(String action, double quantity, double limitPrice, double stopPrice) {
         Order order = new Order();
         order.action(action);
         order.orderType("STP LMT");
@@ -104,7 +104,7 @@ public class OrderTypes {
      * @param trailStopPrice trailing stop price
      * @return a trailing stop market order
      */
-    public static Order TrailingStop(String action, double quantity, double trailingPercent, double trailStopPrice) {
+    public static Order trailingStop(String action, double quantity, double trailingPercent, double trailStopPrice) {
         Order order = new Order();
         order.action(action);
         order.orderType("TRAIL");
