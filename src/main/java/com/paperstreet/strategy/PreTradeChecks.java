@@ -35,7 +35,7 @@ public class PreTradeChecks {
 
         // According to IBKR "For general account types, a SELL order will be able to enter a short position
         // automatically if the order quantity is larger than your current long position."
-        int quantityAfterTrade = quantity - posSize;
+        int quantityAfterTrade = posSize - quantity;
         return quantityAfterTrade < 0;
     }
 
