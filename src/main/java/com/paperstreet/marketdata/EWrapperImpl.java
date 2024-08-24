@@ -26,6 +26,7 @@ public class EWrapperImpl implements EWrapper {
     private final LogHandler logHandler;
     private final ParserHandler parserHandler;
     private final PositionManager positionManager;
+    private final String date;
 
     public EWrapperImpl() {
         positionManager = new PositionManager();
@@ -33,6 +34,13 @@ public class EWrapperImpl implements EWrapper {
         readerSignal = new EJavaSignal();
         clientSocket = new EClientSocket(this, readerSignal);
         logHandler = new LogHandler();
+        this.date = getDate();
+    }
+
+    private static String getDate() {
+        LocalDate dateObj = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        return dateObj.format(formatter);
     }
 
     /**
@@ -364,7 +372,11 @@ public class EWrapperImpl implements EWrapper {
     }
 
     /**
-     * Provides the portfolio's open positions if reqPositions is invoked.
+     * Provides the portfolio's open positions if reqPositions is invoked. reqPositions
+     * subscribes to position updates for all accessible accounts. All positions sent initially,
+     * and then only updates as positions change. As a result, positionManager will
+     * update the positionData csv at the beginning of the trading sessions as well as
+     * every time the positions change.
      *
      * @param accountName the accountName holding the quantity.
      * @param contract the quantity's Contract.
@@ -378,12 +390,6 @@ public class EWrapperImpl implements EWrapper {
         logHandler.logInfo(positionInfoString);
 
         positionManager.getPositions(contract.localSymbol(), quantity, averageCost, accountName);
-
-        //TODO: look into creating a method for getting the date as the below will probably be usefull
-        // elsewhere in this class.
-        LocalDate dateObj = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String date = dateObj.format(formatter);
         positionManager.savePositionsToCsv("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
     }
 
