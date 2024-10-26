@@ -12,6 +12,12 @@ import java.time.format.DateTimeFormatter;
  */
 public class ParserHandler {
 
+    /**
+     * Parse the market data being received and write it locally.
+     *
+     * @param marketData
+     * @throws IOException
+     */
     public void parseMarketData(String marketData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_marketData.csv");
@@ -24,6 +30,12 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse tick size data being received and write it locally.
+     *
+     * @param marketData
+     * @throws IOException
+     */
     public void parseTickSizeData(String marketData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_tickSizeData.csv");
@@ -36,6 +48,12 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse order data being received and write it locally.
+     *
+     * @param orderData
+     * @throws IOException
+     */
     public void parseOrderData(String orderData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_orderData.csv");
@@ -48,6 +66,12 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse position data being received and write it locally.
+     *
+     * @param positionData
+     * @throws IOException
+     */
     public void parsePositionData(String positionData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_positionData.csv");
@@ -60,6 +84,12 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse portfolio data being received and write it locally.
+     *
+     * @param portfolioData
+     * @throws IOException
+     */
     public void parsePortfolioData(String portfolioData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_portfolioData.csv");
@@ -72,6 +102,9 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse OHLC data being received and write it locally.
+     */
     public void parseOhlcData(String portfolioData) throws IOException {
         String date = getDate();
         File file = new File("C:\\Users\\kylek\\data\\" + date + "_ohlcData.csv");
@@ -84,6 +117,12 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Parse historical data being received and write it locally.
+     *
+     * @param historicalData
+     * @throws IOException
+     */
     public void parseHistoricalData(String historicalData) throws IOException {
         File file = new File("C:\\Users\\kylek\\data\\market_data\\ibkr\\historicalData.csv");
         FileWriter writer = new FileWriter(file, true);
@@ -93,6 +132,11 @@ public class ParserHandler {
         writer.close();
     }
 
+    /**
+     * Get the date for the day the code is currently being run for.
+     *
+     * @return the date as a string.
+     */
     private String getDate() {
         LocalDate dateObj = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");

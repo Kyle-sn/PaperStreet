@@ -12,6 +12,9 @@ public class Positions {
     private double averageCost;
     private String accountNumber;
 
+    /**
+     * Class for creating position objects.
+     */
     public Positions() {
     }
 
