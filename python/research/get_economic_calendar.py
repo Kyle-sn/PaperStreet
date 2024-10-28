@@ -5,8 +5,8 @@ import pandas as pd
 
 def process_data():
     data = get_data()
-    json_file_path = "C:\\Users\\kylek\\data\\economic_calendar\\test.json"
-    csv_file_path = "C:\\Users\\kylek\\data\\economic_calendar\\test.csv"
+    json_file_path = "/home/kyle/data/economic_calendar/test.json"
+    csv_file_path = "/home/kyle/data/economic_calendar/test.csv"
 
     with open(json_file_path, 'w') as file:
         json.dump(data["release_dates"], file)
