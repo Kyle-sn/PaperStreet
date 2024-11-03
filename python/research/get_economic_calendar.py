@@ -46,7 +46,7 @@ def get_data():
 def insert_data_to_db(csv_file_path):
     data = pd.read_csv(csv_file_path)
     # convert the 'release_last_updated' column to DATE format (YYYY-MM-DD)
-    data['release_last_updated'] = pd.to_datetime(data['release_last_updated']).dt.date
+    data['release_last_updated'] = pd.to_datetime(data['release_last_updated'], utc=True)
     
     # create a new concatenated column to serve as the primary key in the db
     data['id'] = data['release_id'].astype(str) + '.' + data['date'].astype(str)
