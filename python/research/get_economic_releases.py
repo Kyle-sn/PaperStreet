@@ -7,9 +7,11 @@ from datetime import datetime
 
 
 def process_data():
-    data = get_data()
-    json_file_path = "/home/kyle/data/economic_calendar/test.json"
-    csv_file_path = "/home/kyle/data/economic_calendar/test.csv"
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    data = get_data(current_date)
+
+    json_file_path = f"/home/kyle/data/economic_releases/{current_date}.json"
+    csv_file_path = f"/home/kyle/data/economic_releases/{current_date}.csv"
 
     with open(json_file_path, 'w') as file:
         json.dump(data["release_dates"], file)
@@ -20,14 +22,13 @@ def process_data():
     insert_data_to_db(csv_file_path)
 
 
-def get_data():
+def get_data(current_date):
     # get release dates for all releases of economic data.
     url_base = 'https://api.stlouisfed.org/fred/releases/dates?'
 
     # keeping the realtime start/end dates as the latest date will make it so that
     # the csv being written only has that data. Downstream this allows for only the
     # latest day's data to be inserted into the db.
-    current_date = datetime.now().strftime('%Y-%m-%d')
     url_params = {
         'file_type': 'json',
         'realtime_start': current_date,
