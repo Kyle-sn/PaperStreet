@@ -51,15 +51,11 @@ def get_data(symbol, current_date):
     if not value:
         value = get_previous_value('fred_data', symbol, date)
 
-    data_set = {(date, value)}
-
-    return data_set
+    return {(date, value)}
 
 
 def insert_data_to_db(data_set, symbol):
     date, value = next(iter(data_set))
-
-    # use date as primary key
 
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
