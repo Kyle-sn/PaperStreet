@@ -44,7 +44,7 @@ def get_data(symbol, current_date):
             f'Authentication error: status code {response.status_code}, reason: {response.reason}')
 
     content = json.loads(response.content)
-    entry = content['observations'][0]
+    entry = content['observations'][-1]  # get last value
     date = entry['date']
     value = entry['value']
 
