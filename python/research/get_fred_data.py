@@ -70,9 +70,10 @@ def insert_data_to_db(data_set, symbol):
     cursor = connection.cursor()
 
     table_name = "fred_data"
-    sql_query = f"INSERT INTO {table_name} VALUES (%s, %s, %s)"
+    id_value = f"{symbol}.{date}"
+    sql_query = f"INSERT INTO {table_name} (id, date, symbol, value) VALUES (%s, %s, %s, %s)"
 
-    cursor.execute(sql_query, (date, symbol, value))
+    cursor.execute(sql_query, (id_value, date, symbol, value))
 
     connection.commit()
 
