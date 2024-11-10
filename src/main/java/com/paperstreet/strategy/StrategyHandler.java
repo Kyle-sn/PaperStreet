@@ -3,8 +3,10 @@ package com.paperstreet.strategy;
 import com.ib.client.*;
 import com.paperstreet.marketdata.ContractHandler;
 import com.paperstreet.marketdata.EWrapperImpl;
+import com.paperstreet.trades.OrderTypes;
 import com.paperstreet.utils.LogHandler;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_IP;
@@ -55,21 +57,24 @@ public class StrategyHandler {
 
     public void placeTrade() throws InterruptedException {
         TimeUnit.SECONDS.sleep(2);
+        List<Integer> strategyIds = StrategyParameterReader.getStrategyIds();
 
-        // TEMPORARY ///////////////
-        int strategyId = 456;
-        String signalSide = "BUY";
-        int quantity = 6;
-        ////////////////////////////
+        // loop through all strategies in the strategy_parameter.json file and place trades
+        // according to the strategy parameters and strategy signals.
+        for (int strategyId : strategyIds) {
+            int orderId = getValidOrderId();
+            String symbol = getSymbol(strategyId);
+            // where do I get signalSide and quantity from?
+            // its not a parameter--its part of the signal
+            // signalSide, quantity = getSignals(strategyId)
 
-        String symbol = getSymbol(strategyId);
-
-        if (PreTradeChecks.passedPreTradeChecks(strategyId, signalSide, quantity)) {
-            sendMarketOrder(symbol, signalSide, quantity);
-        } else {
-            logHandler.logError("Pre-trade checks failed. Strategy " + strategyId + " tried to " +
-                    signalSide + " " + quantity + " of " + symbol + ". Check the current position size " +
-                    "and if the strategy is allowed to short.");
+            if (PreTradeChecks.passedPreTradeChecks(strategyId, signalSide, quantity)) {
+                sendMarketOrder(symbol, signalSide, quantity);
+            } else {
+                logHandler.logError("Pre-trade checks failed. Strategy " + strategyId + " tried to " +
+                        signalSide + " " + quantity + " of " + symbol + ". Check the current position size " +
+                        "and if the strategy is allowed to short.");
+            }
         }
     }
 
