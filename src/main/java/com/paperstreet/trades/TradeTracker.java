@@ -33,26 +33,28 @@ public class TradeTracker {
         return strategies;
     }
 
+    // TODO: make a test out of the below main function
+    // TODO: apply this logic in a dynamic way within the StrategyHandler
     public static void main(String[] args) {
         TradeTracker tracker = new TradeTracker();
 
-        // Creating strategies
+        // creating strategies
         Strategy strategy1 = new Strategy("Strategy1");
         Strategy strategy2 = new Strategy("Strategy2");
 
-        // Adding strategies to tracker
+        // adding strategies to tracker
         tracker.addStrategy(strategy1);
         tracker.addStrategy(strategy2);
 
-        // Creating trades
+        // creating trades
         Trade trade1 = new Trade(123, 1, "BUY", 20);
         Trade trade2 = new Trade(234, 2, "SELL", 21);
 
-        // Adding trades to strategies
+        // adding trades to strategies
         tracker.addTrade("Strategy1", trade1);
         tracker.addTrade("Strategy2", trade2);
 
-        // Retrieving and displaying strategy trades
+        // retrieving and displaying strategy trades
         System.out.println(tracker.getStrategy("Strategy1"));
         System.out.println(tracker.getStrategy("Strategy2"));
     }

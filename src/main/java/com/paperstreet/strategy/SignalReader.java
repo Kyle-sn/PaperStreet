@@ -27,15 +27,7 @@ public class SignalReader {
 
             signals.add(new Signal(strategy, symbol, quantity));
         }
-
         scanner.close();
-
-        for (Signal signal : signals) {
-            if (signal.getStrategy() == strategyId) {
-
-            }
-        }
-
         return signals;
     }
 
@@ -46,15 +38,6 @@ public class SignalReader {
                 return signal.toString();
             }
         }
-        return "ERROR in getSpecificStrategySignal";
-    }
-
-    public static void main(String[] args) {
-        try {
-            String individualSignal = getSpecificStrategySignal(123);
-            System.out.println(individualSignal);
-        } catch (FileNotFoundException e) {
-            System.err.println("File not found: " + e.getMessage());
-        }
+        return ""; //return nothing
     }
 }
