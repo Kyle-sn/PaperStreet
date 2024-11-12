@@ -38,6 +38,6 @@ public class SignalReader {
                 return signal.toString();
             }
         }
-        return ""; //return nothing
+        return null;
     }
 }
