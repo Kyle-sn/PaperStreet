@@ -11,6 +11,9 @@ import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_I
 import static com.paperstreet.marketdata.MarketDataConstants.BROKER_CONNECTION_PORT;
 import static com.paperstreet.utils.ConnectionConstants.POSITION_HANDLER_CONNECTION_ID;
 
+/**
+ * Class to initiate position handling.
+ */
 public class PositionHandler {
 
     private final EClientSocket client;

@@ -3,6 +3,9 @@ package com.paperstreet.trades;
 import com.ib.client.Decimal;
 import com.ib.client.Order;
 
+/**
+ * Different order types that we are able to send to IBKR.
+ */
 public class OrderTypes {
 
     /**

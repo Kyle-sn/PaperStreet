@@ -5,6 +5,9 @@ import com.paperstreet.utils.LogHandler;
 
 import static com.paperstreet.marketdata.MarketDataConstants.*;
 
+/**
+ * Class for the creation of an IBKR contract to be traded.
+ */
 public class ContractHandler {
 
     private static final LogHandler logHandler = new LogHandler();

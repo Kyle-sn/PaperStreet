@@ -5,10 +5,21 @@ import com.paperstreet.utils.LogHandler;
 
 import java.io.IOException;
 
+/**
+ * Perform various checks prior to submitting a trade to make sure trades adhere to predefined logic.
+ */
 public class PreTradeChecks {
     private static final LogHandler logHandler = new LogHandler();
     static int posSize;
 
+    /**
+     * Bool to confirm whether or not checks have been passed.
+     *
+     * @param strategyId ID of the strategy placing a trade
+     * @param signalSide side of the trade (buy/sell)
+     * @param quantity size of the trade
+     * @return true or false based on the result of the checks being passed or not
+     */
     public static boolean passedPreTradeChecks(int strategyId, String signalSide, int quantity) {
         quantity = adjustQuantityDirection(quantity, signalSide);
 
@@ -20,6 +31,12 @@ public class PreTradeChecks {
                 (tradeSizeIsValid && !isTryingToShort);
     }
 
+    /**
+     * A check to make sure a strategy is configured to short.
+     *
+     * @param strategyId ID of the strategy placing a trade
+     * @return
+     */
     public static boolean canShort(int strategyId) {
         Object canShortObj = StrategyParameterReader.getParam("can_short", strategyId);
         assert canShortObj != null;
