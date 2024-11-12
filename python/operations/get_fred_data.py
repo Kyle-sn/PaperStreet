@@ -13,6 +13,7 @@ args = parser.parse_args()
 
 def process_data(symbol):
     current_date = datetime.now().strftime('%Y-%m-%d')
+    print(f'Running for {symbol} on {current_date}')
     data_set = get_data(symbol, current_date)
     insert_data_to_db(data_set, symbol)
 
@@ -56,6 +57,7 @@ def get_data(symbol, current_date):
 
 def insert_data_to_db(data_set, symbol):
     date, value = next(iter(data_set))
+    print(f'Preparing to insert into the db data for {symbol} on {date}.')
 
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
