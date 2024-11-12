@@ -7,6 +7,8 @@ import org.json.JSONTokener;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StrategyParameterReader {
 
@@ -52,6 +54,26 @@ public class StrategyParameterReader {
             return null;
         }
         return null;
+    }
+
+    public static List<Integer> getStrategyIds() {
+        try {
+            FileReader reader = readStrategyParams();
+            JSONObject jsonObject = new JSONObject(new JSONTokener(reader));
+            JSONArray strategiesArray = jsonObject.getJSONArray("strategies");
+
+            List<Integer> strategyIds = new ArrayList<>();
+
+            for (int i = 0; i < strategiesArray.length(); i++) {
+                JSONObject strategy = strategiesArray.getJSONObject(i);
+                int strategyId = strategy.getInt("strategy_id");
+                strategyIds.add(strategyId);
+            }
+            return strategyIds;
+        } catch (FileNotFoundException e) {
+            logHandler.logError("File not found: " + e.getMessage());
+            return null;
+        }
     }
 
     private static int getMaxPosition(String param, JSONObject parameters) {

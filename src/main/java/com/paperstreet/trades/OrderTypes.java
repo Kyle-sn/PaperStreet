@@ -1,4 +1,4 @@
-package com.paperstreet.strategy;
+package com.paperstreet.trades;
 
 import com.ib.client.Decimal;
 import com.ib.client.Order;
