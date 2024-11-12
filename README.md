@@ -16,9 +16,7 @@ Connects to IBKR and does the following:
 2. Requests account summary information, such as margin info, buying power, cash balances, etc.
 3. Requests position information. Requested initially at startup and then again only when positions change.
 ##### StrategyHandler
-Connects to IBKR and attempts to place trades. This part of the OMS is currently being worked on.
-
-As of November 2024, some trade parameters are hardcoded in `StrategyHandler::placeTrade`. The strategy parameters go through some pre-trade checks and then a market order is sent.
+Connects to IBKR and attempts to place trades. This part of the OMS is currently being worked on. The strategy parameters go through some pre-trade checks and then a market order is sent.
 
 On the OMS side of things, I am currently working on introducing logic that will allow the tracking of more than one strategy and any trades and positions that are associated with each strategy. This will allow for intraday tracking of strategy trading as well as overnight tracking of positions for each strategy. 
 
