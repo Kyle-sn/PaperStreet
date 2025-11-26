@@ -1,6 +1,6 @@
 import json
 
-from python.backtest.vectorbt.backtest import promote_strategy
+from v1.python.backtest.vectorbt.backtest import promote_strategy
 
 
 def write_parameters():
