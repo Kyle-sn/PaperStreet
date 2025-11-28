@@ -4,6 +4,9 @@ from ibapi.client import EClient
 from ibapi.contract import Contract
 from ibapi.utils import decimalMaxString, floatMaxString
 from ibapi.wrapper import EWrapper
+from v2.log_config import setup_logger
+
+logger = setup_logger(__name__)
 
 """
 The provided TWS API package use two distinct classes to accommodate the request / response functionality of the 
@@ -34,64 +37,77 @@ class IBApp(EWrapper, EClient):
         EClient.__init__(self, self)
         self.nextOrderId = None
 
-    def nextValidId(self, orderId: int):
-        self.nextOrderId = orderId
-        print(f"Connected. Next Order ID: {orderId}")
+    def nextValidId(self, order_id: int):
+        self.nextOrderId = order_id
+        logger.info(f"Connected. Next Order ID: {order_id}")
 
     # Accepts extra arguments to avoid TypeError
-    def error(self, reqId, errorCode, errorString, *args):
-        print(f"IB Error. ReqId: {reqId}, Code: {errorCode}, Msg: {errorString}")
+    def error(self, req_id, error_code, error_string, *args):
+        logger.error(f"IB Error. ReqId: {req_id}, Code: {error_code}, Msg: {error_string}")
         if args:
-            print("Additional error args:", args)
+            logger.error(f"Additional error args: {args}")
 
-    def tickPrice(self, reqId, tickType, price, attrib):
-        print(f"Tick Price. Ticker Id: {reqId}, Type: {tickType}, Price: {price}")
+    def accountSummary(self, req_id: int, account: str, tag: str, value: str, currency: str):
+        """
+        Receives the account information. This method will receive the account information just as it
+        appears in the TWS’ Account Summary Window.
+        """
+        logger.info(f"ReqId: {req_id}, Account: {account}, Tag: {tag}, Value: {value}, Currency: {currency}")
 
-    def tickSize(self, reqId, tickType, size):
-        print(f"Tick Size. Ticker Id: {reqId}, Type: {tickType}, Size: {size}")
+    def accountSummaryEnd(self, req_id: int):
+        """
+        Notifies when all the accounts’ information has ben received. Requires TWS 967+ to receive
+        accountSummaryEnd in linked account structures.
+        """
+        logger.info(f"ReqId: {req_id}")
 
-    def orderStatus(
-            self,
-            orderId,
-            status,
-            filled,
-            remaining,
-            avgFillPrice,
-            permId,
-            parentId,
-            lastFillPrice,
-            clientId,
-            whyHeld,
-            mktCapPrice,
-    ):
-        print(f"OrderStatus. ID: {orderId}, Status: {status}, Filled: {filled}")
+    def updateAccountValue(self, key: str, val: str, currency: str, account_name: str):
+        """
+        Receives the subscribed account’s information. Only one account can be subscribed at a time.
+        After the initial callback to updateAccountValue, callbacks only occur for values which have
+        changed. This occurs at the time of a position change, or every 3 minutes at most. This
+        frequency cannot be adjusted.
+        """
+        logger.info(f"Key: {key}, Value: {val}, Currency: {currency}, Account_Name: {account_name}")
 
-    def accountSummary(self, reqId: int, account: str, tag: str, value: str, currency: str):
-        print("AccountSummary. ReqId:", reqId, "Account:", account, "Tag: ", tag, "Value:", value, "Currency:",
-              currency)
+    def updatePortfolio(self, contract: Contract, position: Decimal, market_price: float, market_value: float,
+                        average_cost: float, unrealized_pnl: float, realized_pnl: float, account_name: str):
+        """
+        Receives the subscribed account’s portfolio. This function will receive only the portfolio
+        of the subscribed account. After the initial callback to updatePortfolio, callbacks only
+        occur for positions which have changed.
+        """
+        logger.info(f"Symbol: {contract.symbol}, Sec_Type: {contract.secType}, Exchange: " +
+                    f"{contract.exchange}, Position: {decimalMaxString(position)}, Market_Price: " +
+                    f"{floatMaxString(market_price)}, Market_Value: {floatMaxString(market_value)}, Average_Cost: " +
+                    f"{floatMaxString(average_cost)}, Unrealized_PNL: {floatMaxString(unrealized_pnl)}, " +
+                    f"Realized_PNL: {floatMaxString(realized_pnl)}, Account_Name: {account_name}")
 
-    def accountSummaryEnd(self, reqId: int):
-        print("AccountSummaryEnd. ReqId:", reqId)
+    def updateAccountTime(self, time_stamp: str):
+        """
+        Receives the last time on which the account was updated.
+        """
+        logger.info(f"Time: {time_stamp}")
 
-    def updateAccountValue(self, key: str, val: str, currency: str, accountName: str):
-        print("UpdateAccountValue. Key:", key, "Value:", val, "Currency:", currency, "AccountName:", accountName)
+    def accountDownloadEnd(self, account_name: str):
+        """
+        Notifies when all the account’s information has finished.
+        """
+        logger.info(f"Account: {account_name}")
 
-    def updatePortfolio(self, contract: Contract, position: Decimal, marketPrice: float, marketValue: float,
-                        averageCost: float, unrealizedPNL: float, realizedPNL: float, accountName: str):
-        print("UpdatePortfolio.", "Symbol:", contract.symbol, "SecType:", contract.secType, "Exchange:",
-              contract.exchange, "Position:", decimalMaxString(position), "MarketPrice:", floatMaxString(marketPrice),
-              "MarketValue:", floatMaxString(marketValue), "AverageCost:", floatMaxString(averageCost),
-              "UnrealizedPNL:", floatMaxString(unrealizedPNL), "RealizedPNL:", floatMaxString(realizedPNL),
-              "AccountName:", accountName)
+    def position(self, account: str, contract: Contract, position: Decimal, avg_cost: float):
+        """
+        Provides the portfolio’s open positions. After the initial callback (only) of all positions,
+        the IBApi.EWrapper.positionEnd function will be triggered.
 
-    def updateAccountTime(self, timeStamp: str):
-        print("UpdateAccountTime. Time:", timeStamp)
-
-    def accountDownloadEnd(self, accountName: str):
-        print("AccountDownloadEnd. Account:", accountName)
-
-    def position(self, account: str, contract: Contract, position: Decimal, avgCost: float):
-        print("Position.", "Account:", account, "Contract:", contract, "Position:", position, "Avg cost:", avgCost)
+        For futures, the exchange field will not be populated in the position callback as some
+        futures trade on multiple exchanges
+        """
+        logger.info(f"Account: {account}, Contract: {contract}, Position: {position}, Avg cost: {avg_cost}")
 
     def positionEnd(self):
-        print("PositionEnd")
+        """
+        Indicates all the positions have been transmitted. Only returned after the initial callback
+        of EWrapper.position.
+        """
+        logger.info("Position_End")

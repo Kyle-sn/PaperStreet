@@ -1,5 +1,8 @@
 from ibapi.contract import Contract
 from v2.connection_constants import *
+from v2.log_config import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class ContractHandler:
@@ -16,7 +19,7 @@ class ContractHandler:
         contract.exchange = EXCHANGE
         contract.currency = CURRENCY
 
-        print(f"Contract created for {ticker}")
+        logger.info(f"Contract created for {ticker}")
         return contract
 
     @staticmethod
