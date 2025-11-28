@@ -64,6 +64,6 @@ def request_positions(app):
 if __name__ == "__main__":
     app = connect_position_handler()
     request_account_summary(app)
-    request_account_updates(app, "DU5231415")
+    request_account_updates(app, "ADD_ACCOUNT_NUMBER_HERE")
     request_positions(app)
     app.run()
