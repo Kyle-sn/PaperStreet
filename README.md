@@ -1,12 +1,14 @@
 # PaperStreet Automated Trading System
 ## Overview
+**NOTE:** I am currently working on v2 of this ATS. The difference is that v1 is in java and I am currently rewriting in python for v2.
+
 An automated trading system written primarily in java utilizing the Interactive Brokers TWS API. I started building it in January 2022 as a way to practice my java as well as to create my own personal trading system that I can use for personal strategies.
 
 My goal was to successfully place a trade in my personal trading account using the automated trading system. I was able to do so in production on 2022-03-28.
 
 I lack the know how to perform worthwhile quantitative research and so there is no strategy logic at the moment. My professional experience is in trading operations and supporting automated trading systems, which is why I am primarily focusing on infrastructure for this project.
 
-## PaperStreet OMS Workflow (Java)
+## PaperStreet v1 OMS Workflow (Java)
 There are three main classes that need to run in this order:
 ##### MarketDataHandler
 Connects to IBKR requesting market data for a particular contract.
