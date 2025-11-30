@@ -1,6 +1,6 @@
 from ibapi.contract import Contract
-from v2.connection_constants import *
-from v2.log_config import setup_logger
+from v2.utils.connection_constants import *
+from v2.utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 

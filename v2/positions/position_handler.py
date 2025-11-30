@@ -3,8 +3,8 @@ import time
 from ibapi.account_summary_tags import AccountSummaryTags
 
 from v2.ib_app import IBApp
-from v2.connection_constants import *
-from v2.log_config import setup_logger
+from v2.utils.connection_constants import *
+from v2.utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -12,6 +12,7 @@ logger = setup_logger(__name__)
 def connect_position_handler():
     logger.info("Starting IB connection...")
     app = IBApp()
+    # make sure clientId is 0. This is the Master ClientId, which shows all client info
     app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, clientId=0)
     logger.info("Connected. Entering event loop...")
 
