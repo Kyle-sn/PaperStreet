@@ -11,7 +11,6 @@ from ibapi.order_state import OrderState
 from ibapi.utils import decimalMaxString, floatMaxString
 from ibapi.wrapper import EWrapper
 
-from v2.orders.order_handler import get_next_valid_id
 from v2.utils.log_config import setup_logger
 
 logger = setup_logger(__name__)

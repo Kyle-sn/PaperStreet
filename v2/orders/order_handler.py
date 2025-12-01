@@ -9,11 +9,11 @@ from v2.utils.log_config import setup_logger
 logger = setup_logger(__name__)
 
 
-def connect_position_handler():
+def connect_orders_handler():
     logger.info("Starting IB connection...")
     app = IBApp()
     # make sure clientId is 0. This is the Master ClientId, which shows all client info
-    app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, TRADES_CLIENT_ID)
+    app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, ORDERS_CLIENT_ID)
     logger.info("Connected. Entering event loop...")
 
     start = time.time()

@@ -23,12 +23,13 @@ EXCHANGE = "SMART"  # or "GLOBEX"
 CURRENCY = "USD"
 
 # Positions connection client ID
-# The Master Client ID is set in the Global Configuration and is used to distinguish the
-# connecting Client ID used to pull order and orders data even from other API connections.
+#
 POSITIONS_CLIENT_ID = 1
 
-# Trades connection ID
-TRADES_CLIENT_ID = 0
+# Orders connection ID
+# The Master Client ID is set in the Global Configuration and is used to distinguish the
+# connecting Client ID used to pull order and orders data even from other API connections.
+ORDERS_CLIENT_ID = 0
 
 EXECUTIONS_REQUEST_ID = 1001
 
