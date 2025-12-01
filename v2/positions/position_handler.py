@@ -13,7 +13,7 @@ def connect_position_handler():
     logger.info("Starting IB connection...")
     app = IBApp()
     # make sure clientId is 0. This is the Master ClientId, which shows all client info
-    app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, clientId=0)
+    app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, POSITIONS_CLIENT_ID)
     logger.info("Connected. Entering event loop...")
 
     start = time.time()
@@ -36,7 +36,7 @@ def request_account_summary(app):
     update frequency of 3 minutes is the same as the TWS Account Window and cannot be changed.
     """
     logger.info("Requesting account summary")
-    app.reqAccountSummary(1, "All", AccountSummaryTags.AllTags)
+    app.reqAccountSummary(POSITIONS_REQUEST_ID, "All", AccountSummaryTags.AllTags)
 
 
 def request_account_updates(app, account):

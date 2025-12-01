@@ -1,3 +1,4 @@
+import threading
 from decimal import Decimal
 
 from ibapi.client import EClient
@@ -9,6 +10,8 @@ from ibapi.order import Order
 from ibapi.order_state import OrderState
 from ibapi.utils import decimalMaxString, floatMaxString
 from ibapi.wrapper import EWrapper
+
+from v2.orders.order_handler import get_next_valid_id
 from v2.utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -41,6 +44,7 @@ class IBApp(EWrapper, EClient):
     def __init__(self):
         EClient.__init__(self, self)
         self.nextOrderId = None
+        self._id_lock = threading.Lock()
 
     def nextValidId(self, order_id: int):
         """"
@@ -49,6 +53,10 @@ class IBApp(EWrapper, EClient):
         """
         self.nextOrderId = order_id
         logger.info(f"nextOrderId={order_id}")
+
+    def get_next_order_id(self):
+        with self._id_lock:
+            return self.nextOrderId
 
     def error(self, req_id, error_code, error_string, *args):
         logger.error(f"req_id={req_id}|error_code={error_code}|error_string={error_string}")
@@ -118,7 +126,7 @@ class IBApp(EWrapper, EClient):
         Indicates all the positions have been transmitted. Only returned after the initial callback
         of EWrapper.position.
         """
-        logger.info("Position_End")
+        logger.info("PositionEnd")
 
     def commissionAndFeesReport(self, commission_and_fees_report: CommissionAndFeesReport):
         """
@@ -164,4 +172,11 @@ class IBApp(EWrapper, EClient):
         logger.info(f"order_id={order_id}|status={status}|filled={filled}|remaining={remaining}" +
                     f"|avg_fill_price={avg_fill_price}|perm_id={perm_id}|parent_id={parent_id}" +
                     f"|last_fill_price={last_fill_price}|client_id={client_id}|why_held{why_held}" +
-                    f"mkt_cap_price={mkt_cap_price}")
+                    f"|mkt_cap_price={mkt_cap_price}")
+
+    def completedOrder(self, contract: Contract, order: Order,
+                       order_state: OrderState):
+        """
+        This function is called to feed in completed orders.
+        """
+        logger.info(f"contract={contract}|order={order}|order_state={order_state}")
