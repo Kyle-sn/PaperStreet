@@ -43,7 +43,15 @@ class IBApp(EWrapper, EClient):
     def __init__(self):
         EClient.__init__(self, self)
         self.nextOrderId = None
+        self._account_lock = threading.Lock()
         self._id_lock = threading.Lock()
+        self.account = {
+            "cash_balance": None,
+            "maintenance_margin": None,
+            "initial_margin": None,
+            "realized_pnl": None,
+            "unrealized_pnl": None,
+        }
 
     def nextValidId(self, order_id: int):
         """"
@@ -84,6 +92,37 @@ class IBApp(EWrapper, EClient):
         frequency cannot be adjusted.
         """
         logger.info(f"key={key}|value={val}|currency={currency}|account_name={account_name}")
+
+        if key == "TotalCashBalance" and currency == "USD":
+            self.account["cash_balance"] = float(val)
+        elif key == "MaintMarginReq":
+            self.account["maintenance_margin"] = float(val)
+        elif key == "InitMarginReq":
+            self.account["initial_margin"] = float(val)
+        elif key == "RealizedPnL":
+            self.account["realized_pnl"] = float(val)
+        elif key == "UnrealizedPNL":
+            self.account["unrealized_pnl"] = float(val)
+
+    def get_current_cash_balance(self) -> float | None:
+        with self._account_lock:
+            return self.account["cash_balance"]
+
+    def get_current_maintenance_margin(self) -> float | None:
+        with self._account_lock:
+            return self.account["maintenance_margin"]
+
+    def get_current_initial_margin(self) -> float | None:
+        with self._account_lock:
+            return self.account["initial_margin"]
+
+    def get_realized_pnl(self) -> float | None:
+        with self._account_lock:
+            return self.account["realized_pnl"]
+
+    def get_unrealized_pnl(self) -> float | None:
+        with self._account_lock:
+            return self.account["unrealized_pnl"]
 
     def updatePortfolio(self, contract: Contract, position: Decimal, market_price: float, market_value: float,
                         average_cost: float, unrealized_pnl: float, realized_pnl: float, account_name: str):
