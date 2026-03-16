@@ -1,5 +1,5 @@
 from ibapi.order import Order
-from v2.utils.log_config import setup_logger
+from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 

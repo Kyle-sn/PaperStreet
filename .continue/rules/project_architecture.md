@@ -4,30 +4,30 @@ PaperStreet is a Python trading infrastructure project that interacts with the I
 
 ## Key Directories
 
-### v2/
+### root directory
 Contains the main application code.
 
 Important modules:
 
-- v2/positions/
+- positions/
   Handles account position monitoring and account updates from Interactive Brokers.
 
-- v2/utils/
+- utils/
   Utility modules including:
   - logging configuration
   - connection constants
   - shared helpers
 
-- v2/ib_app.py
+- ib_app.py
   Core Interactive Brokers API wrapper used across the project.
 
 ## Positions Module
 
-Files inside `v2/positions` manage account data retrieval.
+Files inside `positions` manage account data retrieval.
 
 Example:
 
-v2/positions/position_handler.py
+positions/position_handler.py
 - Connects to Interactive Brokers
 - Requests account summary
 - Subscribes to account updates
@@ -41,6 +41,6 @@ Uses:
 ## Coding Standards
 
 - Python project
-- Modular structure under v2/
+- Modular structure under the root directory
 - Logging handled through utils.log_config
 - Connection constants stored in utils.connection_constants

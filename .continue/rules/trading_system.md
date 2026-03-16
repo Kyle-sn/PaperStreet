@@ -6,17 +6,17 @@ The codebase focuses on account monitoring, position tracking, and broker commun
 
 ## Architecture Overview
 
-The main application code is located in the `v2/` directory.
+The main application code is located in the root directory.
 
 Important modules:
 
-- `v2/ib_app.py`
+- `ib_app.py`
   Core wrapper around the Interactive Brokers API. Other modules rely on this class for broker connectivity.
 
-- `v2/positions/`
+- `positions/`
   Contains logic for retrieving and monitoring account positions and account summary data.
 
-- `v2/utils/`
+- `utils/`
   Shared utilities including logging configuration and connection constants.
 
 ## Trading System Design Patterns

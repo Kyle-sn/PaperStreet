@@ -3,11 +3,11 @@ import time
 
 from ibapi.execution import ExecutionFilter
 
-from v2.contracts.contract_handler import ContractHandler
-from v2.ib_app import IBApp
-from v2.orders import order_types
-from v2.utils.connection_constants import *
-from v2.utils.log_config import setup_logger
+from contracts.contract_handler import ContractHandler
+from ib_app import IBApp
+from orders import order_types
+from utils.connection_constants import *
+from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 

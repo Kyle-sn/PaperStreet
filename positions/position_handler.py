@@ -2,9 +2,9 @@ import time
 
 from ibapi.account_summary_tags import AccountSummaryTags
 
-from v2.ib_app import IBApp
-from v2.utils.connection_constants import *
-from v2.utils.log_config import setup_logger
+from ib_app import IBApp
+from utils.connection_constants import *
+from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 
