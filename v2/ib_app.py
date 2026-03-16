@@ -63,7 +63,9 @@ class IBApp(EWrapper, EClient):
 
     def get_next_order_id(self):
         with self._id_lock:
-            return self.nextOrderId
+            oid = self.nextOrderId
+            self.nextOrderId += 1
+            return oid
 
     def error(self, req_id, error_code, error_string, *args):
         logger.error(f"req_id={req_id}|error_code={error_code}|error_string={error_string}")
@@ -137,11 +139,11 @@ class IBApp(EWrapper, EClient):
                     f"{floatMaxString(average_cost)}|unrealized_PNL={floatMaxString(unrealized_pnl)}" +
                     f"|realized_pnl={floatMaxString(realized_pnl)}|account_name={account_name}")
 
-    def updateAccountTime(self, time_stamp: str):
-        """
-        Receives the last time on which the account was updated.
-        """
-        logger.info(f"time_stamp={time_stamp}")
+    # def updateAccountTime(self, time_stamp: str):
+    #     """
+    #     Receives the last time on which the account was updated.
+    #     """
+    #     logger.info(f"time_stamp={time_stamp}")
 
     def accountDownloadEnd(self, account_name: str):
         """

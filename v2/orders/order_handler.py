@@ -1,8 +1,11 @@
+import threading
 import time
 
 from ibapi.execution import ExecutionFilter
 
+from v2.contracts.contract_handler import ContractHandler
 from v2.ib_app import IBApp
+from v2.orders import order_types
 from v2.utils.connection_constants import *
 from v2.utils.log_config import setup_logger
 
@@ -12,18 +15,22 @@ logger = setup_logger(__name__)
 def connect_orders_handler():
     logger.info("Starting IB connection...")
     app = IBApp()
-    # make sure clientId is 0. This is the Master ClientId, which shows all client info
     app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, ORDERS_CLIENT_ID)
+
+    thread = threading.Thread(target=app.run, daemon=True)
+    thread.start()
+
     logger.info("Connected. Entering event loop...")
 
     start = time.time()
-    while (time.time() - start) < 1:  # wait up to 1 second
+    while (time.time() - start) < 1:
         if app.nextOrderId is not None:
             logger.info("IBKR connection established!")
             break
         time.sleep(0.1)
     else:
         logger.error("ERROR: Connection timed out. nextValidId not received.")
+
     return app
 
 
@@ -89,3 +96,10 @@ def place_order(app, contract, order):
 
     app.placeOrder(order_id, contract, order)
 
+
+if __name__ == "__main__":
+    app = connect_orders_handler()
+    contract = ContractHandler.get_contract("SPY")
+    order = order_types.market_order("SELL", 1)
+
+    place_order(app, contract, order)

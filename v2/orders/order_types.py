@@ -15,7 +15,9 @@ def market_order(action, quantity):
     order.action = action
     order.orderType = "MKT"
     order.totalQuantity = quantity
-    logger.info(f"Generated {order.orderType} order to {action} {quantity}")
+    order.tif = "DAY"
+    logger.info(f"Generated {order.orderType} order to {action} {quantity} with TIF of {order.tif}")
+    return order
 
 
 def limit_order(action, quantity, limit_price):
@@ -30,6 +32,7 @@ def limit_order(action, quantity, limit_price):
     order.totalQuantity = quantity
     order.lmtPrice = limit_price
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a limit price of {limit_price}")
+    return order
 
 
 def stop_order(action, stop_price, quantity):
@@ -48,6 +51,7 @@ def stop_order(action, stop_price, quantity):
     order.auxPrice = stop_price
     order.totalQuantity = quantity
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a stop price of {stop_price}")
+    return order
 
 
 def stop_limit_order(action, quantity, limit_price, stop_price):
@@ -66,6 +70,7 @@ def stop_limit_order(action, quantity, limit_price, stop_price):
     order.auxPrice = stop_price
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a limit price of " +
                 f"{limit_price} and stop price of {stop_price}")
+    return order
 
 
 def trailing_stop_order(action, quantity, trailing_percent, trail_stop_price):
@@ -86,6 +91,7 @@ def trailing_stop_order(action, quantity, trailing_percent, trail_stop_price):
     order.trailStopPrice = trail_stop_price
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a trailing percent of " +
                 f"{trailing_percent} and a trailing stop price of {trail_stop_price}")
+    return order
 
 
 def trailing_stop_limit_order(action, quantity, trail_stop_price, lmt_price_offset,
@@ -112,3 +118,4 @@ def trailing_stop_limit_order(action, quantity, trail_stop_price, lmt_price_offs
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a trailing stop price of " +
                 f"{trail_stop_price} and a limit price of {lmt_price_offset} with a tailing amount value of "+
                 f"{trailing_amount}")
+    return order
