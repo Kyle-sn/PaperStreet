@@ -41,6 +41,20 @@ Incorrect:
 
 ---
 
+# Known Valid Modules
+
+The following modules are known to exist:
+
+- ib_app
+- positions
+- orders
+- utils
+
+If a module is not in this list or not found in the repository:
+- do not assume it exists
+
+---
+
 # Reading Code Before Answering
 
 Before explaining behavior:
@@ -100,3 +114,33 @@ When explaining repository code:
 1. Reference the actual file.
 2. Reference the relevant function or class.
 3. Explain how the code behaves based on the implementation.
+
+---
+
+# Debugging Behavior
+
+When debugging:
+
+1. Identify the exact error
+2. Locate the file where it occurs
+3. Trace the execution path
+4. Propose the minimal fix
+
+Do not:
+
+- rewrite unrelated code
+- suggest broad refactors
+
+---
+
+# Import Rules
+
+- Functions must be imported from their actual module
+- Do not assume availability via __init__.py
+- Always use explicit imports
+
+Correct:
+from utils.log_config import setup_logger
+
+Incorrect:
+from utils import setup_logger
