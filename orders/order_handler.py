@@ -100,6 +100,8 @@ def place_order(app, contract, order):
 if __name__ == "__main__":
     app = connect_orders_handler()
     contract = ContractHandler.get_contract("SPY")
-    order = order_types.market_order("SELL", 1)
+    market_order = order_types.market_order("BUY", 2)
+    trailing_stop_limit_order = order_types.trailing_stop_limit_order("SELL", 1, 650, 0.50, 10)
 
-    place_order(app, contract, order)
+    place_order(app, contract, market_order)
+    place_order(app, contract, trailing_stop_limit_order)

@@ -31,6 +31,7 @@ def limit_order(action, quantity, limit_price):
     order.orderType = "LMT"
     order.totalQuantity = quantity
     order.lmtPrice = limit_price
+    order.tif = "DAY"
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a limit price of {limit_price}")
     return order
 
@@ -50,6 +51,7 @@ def stop_order(action, stop_price, quantity):
     order.orderType = "STP"
     order.auxPrice = stop_price
     order.totalQuantity = quantity
+    order.tif = "DAY"
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a stop price of {stop_price}")
     return order
 
@@ -68,6 +70,7 @@ def stop_limit_order(action, quantity, limit_price, stop_price):
     order.totalQuantity = quantity
     order.lmtPrice = limit_price
     order.auxPrice = stop_price
+    order.tif = "DAY"
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a limit price of " +
                 f"{limit_price} and stop price of {stop_price}")
     return order
@@ -89,6 +92,7 @@ def trailing_stop_order(action, quantity, trailing_percent, trail_stop_price):
     order.totalQuantity = quantity
     order.trailingPercent = trailing_percent
     order.trailStopPrice = trail_stop_price
+    order.tif = "DAY"
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a trailing percent of " +
                 f"{trailing_percent} and a trailing stop price of {trail_stop_price}")
     return order
@@ -115,6 +119,7 @@ def trailing_stop_limit_order(action, quantity, trail_stop_price, lmt_price_offs
     order.trailStopPrice = trail_stop_price
     order.lmtPriceOffset = lmt_price_offset
     order.auxPrice = trailing_amount
+    order.tif = "DAY"
     logger.info(f"Generated {order.orderType} order to {action} {quantity} with a trailing stop price of " +
                 f"{trail_stop_price} and a limit price of {lmt_price_offset} with a tailing amount value of "+
                 f"{trailing_amount}")
