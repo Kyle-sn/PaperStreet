@@ -22,9 +22,9 @@ EXCHANGE = "SMART"  # or "GLOBEX"
 # Currency
 CURRENCY = "USD"
 
-# Positions connection client ID
-#
-POSITIONS_CLIENT_ID = 1
+POSITIONS_CLIENT_ID = 4001
+
+LIVE_ENGINE_CLIENT_ID = 5001
 
 # Orders connection ID
 # The Master Client ID is set in the Global Configuration and is used to distinguish the
@@ -36,4 +36,8 @@ EXECUTIONS_REQUEST_ID = 1001
 POSITIONS_REQUEST_ID = 2001
 
 HISTORICAL_DATA_REQUEST_ID = 3001
+
+POSITIONS_CLIENT_ID = 4001
+
+LIVE_ENGINE_CLIENT_ID = 5001
 # TODO: look into a request ID manager

@@ -10,16 +10,15 @@ logger = setup_logger(__name__)
 
 
 def connect_position_handler():
-    logger.info("Starting IB connection...")
+    logger.info("Starting position handler connection...")
     app = IBApp()
-    # make sure clientId is 0. This is the Master ClientId, which shows all client info
     app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, POSITIONS_CLIENT_ID)
-    logger.info("Connected. Entering event loop...")
+    logger.info("Position handler connected. Entering event loop...")
 
     start = time.time()
     while (time.time() - start) < 1:  # wait up to 1 second
         if app.nextOrderId is not None:
-            logger.info("IBKR connection established!")
+            logger.info("Position handler connection established!")
             break
         time.sleep(0.1)
     else:
