@@ -52,6 +52,8 @@ class IBApp(EWrapper, EClient):
             "realized_pnl": None,
             "unrealized_pnl": None,
         }
+        self.historical_data = []
+        self._historical_data_event = threading.Event()
 
     def nextValidId(self, order_id: int):
         """"
@@ -220,3 +222,17 @@ class IBApp(EWrapper, EClient):
         This function is called to feed in completed orders.
         """
         logger.info(f"contract={contract}|order={order}|order_state={order_state}")
+
+    def historicalData(self, reqId, bar):
+        self.historical_data.append({
+            "datetime": bar.date,
+            "open": bar.open,
+            "high": bar.high,
+            "low": bar.low,
+            "close": bar.close,
+            "volume": bar.volume
+        })
+
+    def historicalDataEnd(self, reqId, start, end):
+        logger.info(f"Historical data received: {start} → {end}")
+        self._historical_data_event.set()
