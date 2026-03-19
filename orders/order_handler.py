@@ -13,19 +13,19 @@ logger = setup_logger(__name__)
 
 
 def connect_orders_handler():
-    logger.info("Starting IB connection...")
+    logger.info("Starting order handler connection...")
     app = IBApp()
     app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, ORDERS_CLIENT_ID)
 
     thread = threading.Thread(target=app.run, daemon=True)
     thread.start()
 
-    logger.info("Connected. Entering event loop...")
+    logger.info("Order handler connected. Entering event loop...")
 
     start = time.time()
     while (time.time() - start) < 1:
         if app.nextOrderId is not None:
-            logger.info("IBKR connection established!")
+            logger.info("Order handler connection established!")
             break
         time.sleep(0.1)
     else:
