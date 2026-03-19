@@ -70,9 +70,33 @@ class IBApp(EWrapper, EClient):
             return oid
 
     def error(self, req_id, error_code, error_string, *args):
-        logger.error(f"req_id={req_id}|error_code={error_code}|error_string={error_string}")
-        if args:
-            logger.error(f"Additional error args: {args}")
+        IBKR_INFO_CODES = {
+            2104: "Market data farm connection is OK",
+            2106: "HMDS data farm connection is OK",
+            2158: "Sec-def data farm connection is OK",
+        }
+
+        try:
+            code_int = int(error_string)
+        except ValueError:
+            code_int = None
+
+        # If this is an informational message
+        if code_int in IBKR_INFO_CODES:
+            farm_name = None
+            if args and args[0]:
+                # args[0] is like "Market data farm connection is OK:cashfarm"
+                # Split on ":" to get just the farm
+                parts = args[0].split(":")
+                if len(parts) > 1:
+                    farm_name = parts[1]
+
+            if farm_name:
+                logger.info(f"{IBKR_INFO_CODES[code_int]} ({farm_name})")
+            else:
+                logger.info(f"{IBKR_INFO_CODES[code_int]}")
+        else:
+            logger.error(f"req_id={req_id}|error_code={error_code}|error_string={error_string}|args={args}")
 
     def accountSummary(self, req_id: int, account: str, tag: str, value: str, currency: str):
         """
