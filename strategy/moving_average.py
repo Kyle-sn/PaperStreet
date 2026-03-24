@@ -21,6 +21,9 @@ TODO: add position awareness
 """
 
 from strategy.base_strategy import BaseStrategy
+from utils.log_config import setup_logger
+
+logger = setup_logger(__name__)
 
 
 class MovingAverageStrategy(BaseStrategy):
@@ -108,6 +111,7 @@ class MovingAverageStrategy(BaseStrategy):
         # Compute simple moving average (SMA)
         window_prices = self.prices[-self.window:]
         moving_average = sum(window_prices) / self.window
+        logger.info(f"Close price: {close_price} | Window prices: {window_prices} | Moving average {moving_average}")
 
         # Generate trading signal
         if close_price > moving_average:
