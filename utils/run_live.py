@@ -39,7 +39,7 @@ def initialize_services(app, account: str):
 
 
 def initialize_strategy():
-    strategy = MeanReversionStrategy(window=20, spread_multiplier=1.0, max_position=50, order_size=10)
+    strategy = MeanReversionStrategy(window=3, spread_multiplier=1.0, max_position=50, order_size=10)
     contract = ContractHandler.get_contract("SPY")
     return strategy, contract
 
@@ -101,7 +101,7 @@ def trading_loop(mds, strategy, order_app, contract, app, symbol="SPY"):
 
 def main():
     # Replace with your IBKR account number before running.
-    account = "YOUR_ACCOUNT_NUMBER"
+    account = "DU5231415"
     symbol = "SPY"
 
     app = initialize_ib_app()
