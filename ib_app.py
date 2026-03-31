@@ -209,12 +209,6 @@ class IBApp(EWrapper, EClient):
             entry = self.positions.get(symbol)
             return entry["position"] if entry else 0.0
 
-    # def updateAccountTime(self, time_stamp: str):
-    #     """
-    #     Receives the last time on which the account was updated.
-    #     """
-    #     logger.info(f"time_stamp={time_stamp}")
-
     def accountDownloadEnd(self, account_name: str):
         """
         Notifies when all the account’s information has finished.
