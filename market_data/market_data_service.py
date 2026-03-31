@@ -9,6 +9,6 @@ class MarketDataService:
     def get_daily_bars(self, symbol: str):
         return self.provider.get_historical_data(
             symbol,
-            duration="1 M",
+            duration="3 M",
             bar_size="1 day"
         )

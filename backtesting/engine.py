@@ -101,8 +101,11 @@ class BacktestEngine:
             # Convert pandas row to dict for strategy consumption
             bar = row.to_dict()
 
-            # Generate signal from strategy
-            signal = self.strategy.on_bar(bar)
+            # Generate signal from strategy.
+            # Portfolio position is passed in so inventory-aware strategies
+            # (e.g. MeanReversionStrategy) can gate signals against current holdings
+            # without maintaining their own internal position counter.
+            signal = self.strategy.on_bar(bar, position=self.portfolio.position)
 
             # Update portfolio with signal
             self.portfolio.process_signal(signal, bar)

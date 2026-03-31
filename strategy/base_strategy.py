@@ -26,7 +26,7 @@ class BaseStrategy(ABC):
     """
 
     @abstractmethod
-    def on_bar(self, bar: dict) -> dict | None:
+    def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
         """
         Process a single bar of market data and optionally return a trading signal.
 
@@ -43,6 +43,17 @@ class BaseStrategy(ABC):
                 "close": float,
                 "volume": float
             }
+
+        position : float, optional
+            Current net position in shares for the instrument being traded.
+
+            In live trading: pass IBApp.get_position(symbol), populated by the
+            updatePortfolio EWrapper callback from TWS.
+
+            In backtesting: pass Portfolio.position, updated after each signal.
+
+            Defaults to 0.0 for backward compatibility with strategies that do
+            not use position (e.g. MovingAverageStrategy).
 
         Returns
         -------

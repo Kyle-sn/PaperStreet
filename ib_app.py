@@ -52,6 +52,18 @@ class IBApp(EWrapper, EClient):
             "realized_pnl": None,
             "unrealized_pnl": None,
         }
+        # Keyed by symbol (str). Each value is a dict:
+        # {
+        #   "position": float,       — net shares held (negative = short)
+        #   "market_price": float,
+        #   "market_value": float,
+        #   "average_cost": float,
+        #   "unrealized_pnl": float,
+        #   "realized_pnl": float,
+        # }
+        # Updated by updatePortfolio callbacks (fires on every position change).
+        # Positions that are closed (size == 0) are removed from the dict.
+        self.positions: dict[str, dict] = {}
         self.historical_data = []
         self._historical_data_event = threading.Event()
 
@@ -155,15 +167,47 @@ class IBApp(EWrapper, EClient):
     def updatePortfolio(self, contract: Contract, position: Decimal, market_price: float, market_value: float,
                         average_cost: float, unrealized_pnl: float, realized_pnl: float, account_name: str):
         """
-        Receives the subscribed account’s portfolio. This function will receive only the portfolio
+        Receives the subscribed account's portfolio. This function will receive only the portfolio
         of the subscribed account. After the initial callback to updatePortfolio, callbacks only
         occur for positions which have changed.
+
+        Position state is stored in self.positions keyed by symbol. Closed positions
+        (size == 0) are removed so the dict only contains active holdings.
         """
         logger.info(f"symbol={contract.symbol}|sec_type={contract.secType}|exchange=" +
                     f"{contract.exchange}|position={decimalMaxString(position)}|market_price=" +
                     f"{floatMaxString(market_price)}|market_value={floatMaxString(market_value)}|average_cost=" +
                     f"{floatMaxString(average_cost)}|unrealized_PNL={floatMaxString(unrealized_pnl)}" +
                     f"|realized_pnl={floatMaxString(realized_pnl)}|account_name={account_name}")
+
+        symbol = contract.symbol
+        pos_float = float(position)
+
+        with self._account_lock:
+            if pos_float == 0:
+                # Position closed — remove from tracking dict
+                self.positions.pop(symbol, None)
+            else:
+                self.positions[symbol] = {
+                    "position": pos_float,
+                    "market_price": market_price,
+                    "market_value": market_value,
+                    "average_cost": average_cost,
+                    "unrealized_pnl": unrealized_pnl,
+                    "realized_pnl": realized_pnl,
+                }
+
+    def get_position(self, symbol: str) -> float:
+        """
+        Return the current net position size for the given symbol.
+
+        Returns 0.0 if no position is held (or if updatePortfolio has not yet
+        fired for this symbol). Callers should treat this as the broker-confirmed
+        position, not an estimate.
+        """
+        with self._account_lock:
+            entry = self.positions.get(symbol)
+            return entry["position"] if entry else 0.0
 
     # def updateAccountTime(self, time_stamp: str):
     #     """
