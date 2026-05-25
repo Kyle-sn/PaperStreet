@@ -144,25 +144,24 @@ class IBApp(EWrapper, EClient):
         elif key == "UnrealizedPNL":
             self.account["unrealized_pnl"] = float(val)
 
-    def get_current_cash_balance(self) -> float | None:
+    def _get_account_value(self, key: str) -> float | None:
         with self._account_lock:
-            return self.account["cash_balance"]
+            return self.account[key]
+
+    def get_current_cash_balance(self) -> float | None:
+        return self._get_account_value("cash_balance")
 
     def get_current_maintenance_margin(self) -> float | None:
-        with self._account_lock:
-            return self.account["maintenance_margin"]
+        return self._get_account_value("maintenance_margin")
 
     def get_current_initial_margin(self) -> float | None:
-        with self._account_lock:
-            return self.account["initial_margin"]
+        return self._get_account_value("initial_margin")
 
     def get_realized_pnl(self) -> float | None:
-        with self._account_lock:
-            return self.account["realized_pnl"]
+        return self._get_account_value("realized_pnl")
 
     def get_unrealized_pnl(self) -> float | None:
-        with self._account_lock:
-            return self.account["unrealized_pnl"]
+        return self._get_account_value("unrealized_pnl")
 
     def updatePortfolio(self, contract: Contract, position: Decimal, market_price: float, market_value: float,
                         average_cost: float, unrealized_pnl: float, realized_pnl: float, account_name: str):

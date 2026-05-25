@@ -22,6 +22,8 @@ Notes
 - IBKR pacing limit: 60 historical data requests per 10 minutes
 """
 
+import threading
+
 import pandas as pd
 
 from contracts.contract_handler import ContractHandler
@@ -39,6 +41,10 @@ class IBKRMarketDataClient(MarketDataProvider):
 
     def __init__(self, ib_app):
         self.ib = ib_app
+        # Serializes concurrent callers: IBApp holds one shared Event + buffer,
+        # so overlapping requests would mix their data. Callers that need
+        # parallelism must open separate IBApp connections.
+        self._request_lock = threading.Lock()
 
     def get_historical_data(self, symbol: str, duration: str, bar_size: str) -> pd.DataFrame:
         """
@@ -67,6 +73,10 @@ class IBKRMarketDataClient(MarketDataProvider):
         """
         logger.info(f"Requesting historical data: symbol={symbol} duration={duration} bar_size={bar_size}")
 
+        with self._request_lock:
+            return self._fetch(symbol, duration, bar_size)
+
+    def _fetch(self, symbol: str, duration: str, bar_size: str) -> pd.DataFrame:
         contract = ContractHandler.get_contract(symbol)
 
         # Reset shared state before each request

@@ -39,3 +39,6 @@ POSITIONS_REQUEST_ID = 2001
 
 HISTORICAL_DATA_REQUEST_ID = 3001
 # TODO: look into a request ID manager
+
+# IBKR paper-trading account number — replace before running against a live account
+ACCOUNT_NUMBER = "DU5231415"

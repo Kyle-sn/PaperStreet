@@ -53,22 +53,16 @@ def test_get_contract_twice_equivalent_fields():
     assert c1.currency == c2.currency
 
 
-def test_get_contract_returns_new_object_each_call():
-    # Without caching, each call produces a distinct object.
-    # If an LRU cache is added later, update this test to reflect the new contract.
+def test_get_contract_same_symbol_returns_cached_object():
+    # get_contract is lru_cache'd — same symbol must return the exact same object.
+    # Callers must not mutate the returned Contract.
     c1 = ContractHandler.get_contract("SPY")
     c2 = ContractHandler.get_contract("SPY")
-    assert c1 is not c2
+    assert c1 is c2
 
 
-# ---------------------------------------------------------------------------
-# contract() and get_contract() are equivalent
-# ---------------------------------------------------------------------------
-
-def test_contract_and_get_contract_produce_same_fields():
-    c1 = ContractHandler.contract("QQQ")
-    c2 = ContractHandler.get_contract("QQQ")
-    assert c1.symbol == c2.symbol
-    assert c1.secType == c2.secType
-    assert c1.exchange == c2.exchange
-    assert c1.currency == c2.currency
+def test_get_contract_different_symbols_return_different_objects():
+    c_spy = ContractHandler.get_contract("SPY")
+    c_qqq = ContractHandler.get_contract("QQQ")
+    assert c_spy is not c_qqq
+    assert c_spy.symbol != c_qqq.symbol

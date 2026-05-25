@@ -56,6 +56,7 @@ from utils.connection_constants import (
     BROKER_CONNECTION_IP,
     BROKER_CONNECTION_PORT,
     RESEARCH_CLIENT_ID,
+    LIVE_ENGINE_CLIENT_ID,
 )
 from utils.log_config import setup_logger
 
@@ -86,9 +87,10 @@ class Session:
         Default: 10.
     """
 
-    def __init__(self, account: str = None, timeout: int = 10):
+    def __init__(self, account: str = None, timeout: int = 10, client_id: int = None):
         self._account = account
         self._timeout = timeout
+        self._client_id = client_id if client_id is not None else RESEARCH_CLIENT_ID
         self._app = None
         self._thread = None
         self.market_data: MarketDataService = None
@@ -103,7 +105,7 @@ class Session:
         logger.info("Session connecting to TWS...")
 
         self._app = ib_app_module.IBApp()
-        self._app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, clientId=RESEARCH_CLIENT_ID)
+        self._app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, clientId=self._client_id)
 
         self._thread = threading.Thread(target=self._app.run, daemon=True)
         self._thread.start()
