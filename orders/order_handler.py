@@ -75,15 +75,16 @@ def request_completed_orders(app):
 
 def wait_for_next_id(app, timeout=10):
     """
-    Since nextValidId arrives asynchronously, our thread must wait for it
+    Since nextValidId arrives asynchronously, our thread must wait for it.
+    Checks nextOrderId directly to avoid consuming an ID during polling.
     """
     start = time.time()
     while True:
-        next_id = app.get_next_order_id()
-        if next_id is not None:
-            return next_id
+        if app.nextOrderId is not None:
+            return app.nextOrderId
         if time.time() - start > timeout:
-            raise logger.error(TimeoutError("Timed out waiting for nextValidId"))
+            logger.error("Timed out waiting for nextValidId")
+            raise TimeoutError("Timed out waiting for nextValidId")
         time.sleep(0.05)
 
 
