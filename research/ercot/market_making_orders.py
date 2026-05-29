@@ -25,7 +25,7 @@ from typing import Any, Optional
 
 from ercot.settlement_calculator import RollingEstimate, SettlementEngine
 
-from run_settlement_test_data import load_and_merge_events
+from backtesting.run_settlement_test_data import load_and_merge_events
 
 logger = logging.getLogger(__name__)
 
