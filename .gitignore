@@ -30,3 +30,11 @@ __pycache__
 
 # Misc
 .idea/
+.vscode/
+.claude/
+.continue
+
+# Python
+.venv/
+*.pyc
+.pytest_cache/

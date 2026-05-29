@@ -1,9 +1,10 @@
+import threading
 import time
 
 from ibapi.account_summary_tags import AccountSummaryTags
 
 from ib_app import IBApp
-from utils.connection_constants import *
+from utils.connection_constants import ACCOUNT_NUMBER, BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, POSITIONS_CLIENT_ID, POSITIONS_REQUEST_ID
 from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -13,17 +14,19 @@ def connect_position_handler():
     logger.info("Starting position handler connection...")
     app = IBApp()
     app.connect(BROKER_CONNECTION_IP, BROKER_CONNECTION_PORT, POSITIONS_CLIENT_ID)
+    thread = threading.Thread(target=app.run, daemon=True)
+    thread.start()
     logger.info("Position handler connected. Entering event loop...")
 
     start = time.time()
-    while (time.time() - start) < 1:  # wait up to 1 second
+    while (time.time() - start) < 5:  # wait up to 5 seconds
         if app.nextOrderId is not None:
             logger.info("Position handler connection established!")
             break
         time.sleep(0.1)
     else:
         logger.error("ERROR: Connection timed out. nextValidId not received.")
-    return app
+    return app, thread
 
 
 def request_account_summary(app):
@@ -62,8 +65,8 @@ def request_positions(app):
 
 
 if __name__ == "__main__":
-    app = connect_position_handler()
+    app, thread = connect_position_handler()
     request_account_summary(app)
-    request_account_updates(app, "ADD_ACCOUNT_NUMBER_HERE")
+    request_account_updates(app, ACCOUNT_NUMBER)
     request_positions(app)
-    app.run()
+    thread.join()

@@ -4,6 +4,13 @@ from utils.log_config import setup_logger
 logger = setup_logger(__name__)
 
 
+def _base_order() -> Order:
+    order = Order()
+    order.eTradeOnly = False
+    order.firmQuoteOnly = False
+    return order
+
+
 def market_order(action, quantity):
     """
     A Market order is an order to buy or sell at the market bid or offer price. A market order
@@ -11,7 +18,7 @@ def market_order(action, quantity):
     order a Market order provides no price protection and may fill at a price far lower/higher
     than the current displayed bid/ask.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "MKT"
     order.totalQuantity = quantity
@@ -26,7 +33,7 @@ def limit_order(action, quantity, limit_price):
     ensures that if the order fills, it will not fill at a price less favorable than your limit
     price, but it does not guarantee a fill.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "LMT"
     order.totalQuantity = quantity
@@ -46,7 +53,7 @@ def stop_order(action, stop_price, quantity):
     always placed above the current market price. It is typically used to limit a loss or
     help protect a profit on a short sale.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "STP"
     order.auxPrice = stop_price
@@ -64,7 +71,7 @@ def stop_limit_order(action, quantity, limit_price, stop_price):
     the stop price, the order becomes executable and enters the market as a limit order,
     which is an order to buy or sell at a specified price or better.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "STP LMT"
     order.totalQuantity = quantity
@@ -86,7 +93,7 @@ def trailing_stop_order(action, quantity, trailing_percent, trail_stop_price):
     limit on the maximum possible gain. "Buy" trailing stop orders are the mirror image of
     sell trailing stop orders, and are most appropriate for use in falling markets.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "TRAIL"
     order.totalQuantity = quantity
@@ -112,7 +119,7 @@ def trailing_stop_limit_order(action, quantity, trail_stop_price, lmt_price_offs
     at the last calculated limit price. A "Buy" trailing stop limit order is the mirror
     image of a sell trailing stop limit, and is generally used in falling markets.
     """
-    order = Order()
+    order = _base_order()
     order.action = action
     order.orderType = "TRAIL LIMIT"
     order.totalQuantity = quantity

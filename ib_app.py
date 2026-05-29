@@ -2,13 +2,19 @@ import threading
 from decimal import Decimal
 
 from ibapi.client import EClient
-from ibapi.commission_and_fees_report import CommissionAndFeesReport
+from ibapi.commission_report import CommissionReport
 from ibapi.common import OrderId
 from ibapi.contract import Contract
 from ibapi.execution import Execution
 from ibapi.order import Order
 from ibapi.order_state import OrderState
-from ibapi.utils import decimalMaxString, floatMaxString
+from ibapi.utils import floatToStr
+
+def decimalMaxString(val):
+    return str(val)
+
+def floatMaxString(val):
+    return floatToStr(val)
 from ibapi.wrapper import EWrapper
 
 from utils.log_config import setup_logger
@@ -88,25 +94,14 @@ class IBApp(EWrapper, EClient):
             2158: "Sec-def data farm connection is OK",
         }
 
-        try:
-            code_int = int(error_string)
-        except ValueError:
-            code_int = None
-
-        # If this is an informational message
-        if code_int in IBKR_INFO_CODES:
-            farm_name = None
-            if args and args[0]:
-                # args[0] is like "Market data farm connection is OK:cashfarm"
-                # Split on ":" to get just the farm
-                parts = args[0].split(":")
-                if len(parts) > 1:
-                    farm_name = parts[1]
-
+        if error_code in IBKR_INFO_CODES:
+            # error_string is like "Market data farm connection is OK:cashfarm"
+            parts = error_string.split(":")
+            farm_name = parts[1] if len(parts) > 1 else None
             if farm_name:
-                logger.info(f"{IBKR_INFO_CODES[code_int]} ({farm_name})")
+                logger.info(f"{IBKR_INFO_CODES[error_code]} ({farm_name})")
             else:
-                logger.info(f"{IBKR_INFO_CODES[code_int]}")
+                logger.info(f"{IBKR_INFO_CODES[error_code]}")
         else:
             logger.error(f"req_id={req_id}|error_code={error_code}|error_string={error_string}|args={args}")
 
@@ -231,7 +226,7 @@ class IBApp(EWrapper, EClient):
         """
         logger.info("PositionEnd")
 
-    def commissionAndFeesReport(self, commission_and_fees_report: CommissionAndFeesReport):
+    def commissionReport(self, commission_and_fees_report: CommissionReport):
         """
         When an order is filled either fully or partially, the IBApi.EWrapper.execDetails and
         IBApi.EWrapper.commissionReport events will deliver IBApi.Execution and
