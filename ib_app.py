@@ -17,6 +17,8 @@ def floatMaxString(val):
     return floatToStr(val)
 from ibapi.wrapper import EWrapper
 
+from database import account as _adb
+from database import trading as _tdb
 from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -53,6 +55,10 @@ class IBApp(EWrapper, EClient):
         self._id_lock = threading.Lock()
         self.account = {
             "cash_balance": None,
+            "net_liquidation": None,
+            "gross_position_value": None,
+            "buying_power": None,
+            "excess_liquidity": None,
             "maintenance_margin": None,
             "initial_margin": None,
             "realized_pnl": None,
@@ -83,6 +89,8 @@ class IBApp(EWrapper, EClient):
 
     def get_next_order_id(self):
         with self._id_lock:
+            if self.nextOrderId is None:
+                raise RuntimeError("Not connected to TWS — nextValidId not yet received.")
             oid = self.nextOrderId
             self.nextOrderId += 1
             return oid
@@ -130,13 +138,21 @@ class IBApp(EWrapper, EClient):
 
         if key == "TotalCashBalance" and currency == "USD":
             self.account["cash_balance"] = float(val)
-        elif key == "MaintMarginReq":
+        elif key == "NetLiquidation" and currency == "USD":
+            self.account["net_liquidation"] = float(val)
+        elif key == "GrossPositionValue" and currency == "USD":
+            self.account["gross_position_value"] = float(val)
+        elif key == "BuyingPower" and currency == "USD":
+            self.account["buying_power"] = float(val)
+        elif key == "ExcessLiquidity" and currency == "USD":
+            self.account["excess_liquidity"] = float(val)
+        elif key == "MaintMarginReq" and currency == "USD":
             self.account["maintenance_margin"] = float(val)
-        elif key == "InitMarginReq":
+        elif key == "InitMarginReq" and currency == "USD":
             self.account["initial_margin"] = float(val)
-        elif key == "RealizedPnL":
+        elif key == "RealizedPnL" and currency == "USD":
             self.account["realized_pnl"] = float(val)
-        elif key == "UnrealizedPNL":
+        elif key == "UnrealizedPnL" and currency == "USD":
             self.account["unrealized_pnl"] = float(val)
 
     def _get_account_value(self, key: str) -> float | None:
@@ -179,7 +195,6 @@ class IBApp(EWrapper, EClient):
 
         with self._account_lock:
             if pos_float == 0:
-                # Position closed — remove from tracking dict
                 self.positions.pop(symbol, None)
             else:
                 self.positions[symbol] = {
@@ -190,6 +205,23 @@ class IBApp(EWrapper, EClient):
                     "unrealized_pnl": unrealized_pnl,
                     "realized_pnl": realized_pnl,
                 }
+
+        try:
+            _adb.save_position_snapshot(
+                account=account_name,
+                symbol=symbol,
+                position=pos_float,
+                sec_type=contract.secType,
+                currency=contract.currency,
+                con_id=contract.conId if contract.conId else None,
+                market_price=market_price,
+                market_value=market_value,
+                average_cost=average_cost,
+                unrealized_pnl=unrealized_pnl,
+                realized_pnl=realized_pnl,
+            )
+        except Exception as e:
+            logger.error(f"DB error saving position snapshot for {symbol}: {e}")
 
     def get_position(self, symbol: str) -> float:
         """
@@ -208,6 +240,10 @@ class IBApp(EWrapper, EClient):
         Notifies when all the account’s information has finished.
         """
         logger.info("accountDownloadEnd")
+        try:
+            _adb.save_account_snapshot(account=account_name, **self.account)
+        except Exception as e:
+            logger.error(f"DB error saving account snapshot: {e}")
 
     def position(self, account: str, contract: Contract, position: Decimal, avg_cost: float):
         """
@@ -234,6 +270,16 @@ class IBApp(EWrapper, EClient):
         order’s execution and the resulting commissions.
         """
         logger.info(commission_and_fees_report)
+        r = commission_and_fees_report
+        try:
+            _tdb.update_execution_commission(
+                ib_exec_id=r.execId,
+                commission=r.commission if r.commission < 1e308 else None,
+                commission_currency=r.currency or None,
+                realized_pnl=r.realizedPNL if r.realizedPNL < 1e308 else None,
+            )
+        except Exception as e:
+            logger.error(f"DB error updating execution commission for {r.execId}: {e}")
 
     def execDetails(self, req_id: int, contract: Contract, execution: Execution):
         """
@@ -241,6 +287,26 @@ class IBApp(EWrapper, EClient):
         """
         logger.info(f"req_id={req_id}|symbol={contract.symbol}|sec_type: {contract.secType}" +
                     f"|currency={contract.currency}|execution={execution}")
+        try:
+            order_db_id = _tdb.get_order_db_id(execution.orderId)
+            _tdb.save_execution(
+                symbol=contract.symbol,
+                side=execution.side,
+                shares=float(execution.shares),
+                price=execution.price,
+                executed_at=execution.time,
+                ib_exec_id=execution.execId,
+                ib_order_id=execution.orderId,
+                order_id=order_db_id,
+                account=execution.acctNumber,
+                sec_type=contract.secType,
+                cum_qty=float(execution.cumQty),
+                avg_price=execution.avgPrice,
+                liquidation=bool(execution.liquidation),
+                exchange=execution.exchange or None,
+            )
+        except Exception as e:
+            logger.error(f"DB error saving execution for {contract.symbol}: {e}")
 
     def execDetailsEnd(self, req_id: int):
         """
@@ -271,6 +337,19 @@ class IBApp(EWrapper, EClient):
                     f"|avg_fill_price={avg_fill_price}|perm_id={perm_id}|parent_id={parent_id}" +
                     f"|last_fill_price={last_fill_price}|client_id={client_id}|why_held{why_held}" +
                     f"|mkt_cap_price={mkt_cap_price}")
+        try:
+            _tdb.update_order_status_by_ib_id(
+                ib_order_id=order_id,
+                status=status,
+                filled_quantity=float(filled),
+                remaining_quantity=float(remaining),
+                avg_fill_price=avg_fill_price if avg_fill_price else None,
+                last_fill_price=last_fill_price if last_fill_price else None,
+                ib_perm_id=perm_id if perm_id else None,
+                why_held=why_held if why_held else None,
+            )
+        except Exception as e:
+            logger.error(f"DB error updating order status for ib_order_id={order_id}: {e}")
 
     def completedOrder(self, contract: Contract, order: Order,
                        order_state: OrderState):
@@ -286,7 +365,9 @@ class IBApp(EWrapper, EClient):
             "high": bar.high,
             "low": bar.low,
             "close": bar.close,
-            "volume": bar.volume
+            "volume": bar.volume,
+            "wap": bar.average,
+            "bar_count": bar.barCount,
         })
 
     def historicalDataEnd(self, reqId, start, end):

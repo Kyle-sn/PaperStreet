@@ -38,3 +38,8 @@ __pycache__
 .venv/
 *.pyc
 .pytest_cache/
+
+# Database
+data/*.db
+data/*.db-shm
+data/*.db-wal

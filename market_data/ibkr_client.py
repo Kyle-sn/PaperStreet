@@ -27,6 +27,7 @@ import threading
 import pandas as pd
 
 from contracts.contract_handler import ContractHandler
+from database import market_data as _mdb
 from market_data.base import MarketDataProvider
 from utils.connection_constants import HISTORICAL_DATA_REQUEST_ID
 from utils.log_config import setup_logger
@@ -110,6 +111,17 @@ class IBKRMarketDataClient(MarketDataProvider):
         df = self._parse_datetime_index(df, bar_size)
 
         logger.info(f"Received {len(df)} bars for {symbol}")
+
+        try:
+            _mdb.upsert_bars(
+                symbol=symbol,
+                bars=self.ib.historical_data,
+                sec_type=contract.secType,
+                bar_size=bar_size,
+            )
+        except Exception as e:
+            logger.warning(f"DB upsert_bars failed for {symbol}: {e}")
+
         return df
 
     def _parse_datetime_index(self, df: pd.DataFrame, bar_size: str) -> pd.DataFrame:

@@ -4,6 +4,7 @@ import time
 from ibapi.execution import ExecutionFilter
 
 from contracts.contract_handler import ContractHandler
+from database import trading as _tdb
 from ib_app import IBApp
 from orders import order_types
 from utils.connection_constants import *
@@ -23,15 +24,17 @@ def connect_orders_handler():
     logger.info("Order handler connected. Entering event loop...")
 
     start = time.time()
-    while (time.time() - start) < 1:
+    while (time.time() - start) < 5:
         if app.nextOrderId is not None:
             logger.info("Order handler connection established!")
-            break
+            return app
         time.sleep(0.1)
-    else:
-        logger.error("ERROR: Connection timed out. nextValidId not received.")
 
-    return app
+    raise RuntimeError(
+        "Order handler timed out waiting for TWS connection. "
+        "Check that no other process is using client ID 0 — see TWS "
+        "Edit → Global Configuration → API → Active API Clients."
+    )
 
 
 def request_next_valid_id(app):
@@ -88,14 +91,47 @@ def wait_for_next_id(app, timeout=10):
         time.sleep(0.05)
 
 
-def place_order(app, contract, order):
+_UNSET = 1.7976931348623157e+308
+
+def _price(v):
+    """Return None if v is the IB unset sentinel or zero (not a meaningful price)."""
+    return None if (v is None or v == 0.0 or v >= _UNSET) else v
+
+
+def place_order(app, contract, order, strategy_name: str = None) -> int:
     """
-    Call this function to place an order. The order status will be returned by the
-    orderStatus event.
+    Place an order and save it to the database.
+
+    Returns the local database id for the order row so callers can link
+    signals or other records to it.
     """
     order_id = app.get_next_order_id()
 
+    is_trail = order.orderType in ("TRAIL", "TRAIL LIMIT")
+    is_stop  = order.orderType in ("STP", "STP LMT")
+
+    try:
+        db_id = _tdb.save_order(
+            symbol=contract.symbol,
+            action=order.action,
+            order_type=order.orderType,
+            quantity=float(order.totalQuantity),
+            sec_type=contract.secType,
+            tif=order.tif or "DAY",
+            limit_price=_price(order.lmtPrice),
+            stop_price=_price(order.auxPrice) if is_stop else _price(getattr(order, "trailStopPrice", 0)),
+            trail_percent=_price(getattr(order, "trailingPercent", 0)),
+            trail_amount=_price(order.auxPrice) if is_trail else None,
+            outside_rth=bool(getattr(order, "outsideRth", False)),
+            ib_order_id=order_id,
+            strategy_name=strategy_name,
+        )
+    except Exception as e:
+        logger.error(f"DB error saving order for {contract.symbol}: {e}")
+        db_id = 0
+
     app.placeOrder(order_id, contract, order)
+    return db_id
 
 
 if __name__ == "__main__":
