@@ -8,6 +8,7 @@ Detailed reference docs live in `docs/`. Before starting any task that touches a
 
 - `docs/ARCHITECTURE.md` — overall system design, component responsibilities, threading model, and data flow
 - `docs/IBKR_NOTES.md` — IBKR API behavior, rate limits, error codes, and known gotchas
+- `docs/RISK.md` — risk controls in place, known gaps, and parameters to review before going live
 - `docs/DATA_MODEL.md` — database schema and in-memory state structures (`self.account`, `self.positions`, bar dicts)
 - `docs/STRATEGY.md` — strategy interface, `OrderRequest` dataclass, and design constraints
 - `docs/BACKTESTING.md` — backtesting harness design, fill assumptions, and lookahead bias rules

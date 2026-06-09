@@ -38,8 +38,11 @@ Things actively being built or recently started.
 Prioritized things not yet started.
 
 - **`positions/` module** — position query helpers wrapping `ib_app.get_position()`
-- **Risk layer in `orders/`** — system-wide order size limits and kill switch; enforced before any `placeOrder` call
+- **Risk layer in `orders/`** — system-wide pre-order checks enforced in `place_order()` before any `placeOrder` call: per-order share size limit, kill switch flag, and buying power / max exposure check against `self.account`
+- **Daily loss limit** — session-level circuit breaker that halts new order submissions after realized + unrealized PnL drops below a configured threshold; reads from `self.account`
 - **Backtesting harness** — `BacktestEngine` + simulated `BacktestBroker`; see `BACKTESTING.md`
+- **Secrets manager** — replace hardcoded credentials and account number with a secrets manager (e.g. Windows Credential Manager, AWS Secrets Manager, or similar) before switching to IB Gateway
+- **IB Gateway + IBC** — switch from TWS to headless IB Gateway; use IBC for automated login; blocked on secrets manager being in place first
 - **Reconnect logic** — detect connection drop (error codes 1100/1102), re-subscribe to account updates, re-warm strategies
 - **Strategy warm-up** — pull lookback bars from local DB on `on_start()`; suppress signals until minimum bar count met
 - **First strategy** — signal research → backtest → paper trading (see `STRATEGY.md` for candidates)
