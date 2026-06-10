@@ -49,21 +49,25 @@ it is running live or in a backtest.
         │  chronological bar iteration
         ▼
   BacktestEngine
-        │  calls strategy.on_bar(symbol, bar)
+        │  calls strategy.on_bar(bar, position=portfolio.position)
         ▼
   Strategy instance
-        │  returns list[OrderRequest]
+        │  returns OrderRequest | None  (one symbol per instance)
         ▼
-  BacktestBroker (simulated fills)
-        │  calls strategy.on_fill(...)
+  Portfolio (simulated fills)
         │  updates simulated position / cash
         ▼
   Results / metrics
 ```
 
-### BacktestBroker (simulated)
+> Current state: `BacktestEngine` + `Portfolio` fill a single `OrderRequest` at **bar close**
+> with no slippage/costs (see `engine.py`, `portfolio.py`). The richer fill model below
+> (`BacktestBroker`, next-bar-open fills, `on_fill` callbacks, transaction costs) is the
+> intended target, not yet built.
 
-The simulated broker handles `OrderRequest`s with simple fill assumptions:
+### BacktestBroker (simulated, planned)
+
+The planned simulated broker handles `OrderRequest`s with simple fill assumptions:
 
 - **Market orders**: fill at the next bar's open price
 - **Limit orders**: fill if the next bar's high (for buys) or low (for sells) crosses the limit

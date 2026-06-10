@@ -51,11 +51,15 @@ order_size : int
 """
 
 from strategy.base_strategy import BaseStrategy
+from strategy.indicators import RollingWindow
+from strategy.registry import register_strategy
+from strategy.signal import OrderRequest
 from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 
 
+@register_strategy("mean_reversion")
 class MeanReversionStrategy(BaseStrategy):
     """
     Spread-based mean reversion strategy driven by broker-confirmed position data.
@@ -104,9 +108,11 @@ class MeanReversionStrategy(BaseStrategy):
     order_size : int
         Shares per order.
 
-    prices : list[float]
-        Rolling history of closing prices (internal indicator state only).
+    prices : RollingWindow
+        Bounded rolling history of closing prices (internal indicator state only).
     """
+
+    name = "mean_reversion"
 
     def __init__(
         self,
@@ -137,39 +143,9 @@ class MeanReversionStrategy(BaseStrategy):
         self.max_position = max_position
         self.order_size = order_size
 
-        self.prices: list[float] = []
+        self.prices = RollingWindow(window)
 
-    def _compute_fair_value(self) -> float:
-        """
-        Compute the simple moving average of the most recent `window` closes.
-
-        Returns
-        -------
-        float
-            SMA over the current window.
-        """
-        window_prices = self.prices[-self.window:]
-        return sum(window_prices) / self.window
-
-    def _compute_volatility(self) -> float:
-        """
-        Compute the standard deviation of closing prices over the current window.
-
-        Used to dynamically scale the entry threshold so the strategy adapts to
-        changing market conditions.
-
-        Returns
-        -------
-        float
-            Standard deviation of closing prices in the current window.
-            Returns 0.0 if all prices are identical (no deviation).
-        """
-        window_prices = self.prices[-self.window:]
-        mean = sum(window_prices) / self.window
-        variance = sum((p - mean) ** 2 for p in window_prices) / self.window
-        return variance ** 0.5
-
-    def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
+    def on_bar(self, bar: dict, position: float = 0.0) -> OrderRequest | None:
         """
         Process a new bar and generate a trading signal if conditions are met.
 
@@ -193,14 +169,13 @@ class MeanReversionStrategy(BaseStrategy):
 
         Returns
         -------
-        dict or None
-            Signal format: {"action": "BUY" | "SELL", "quantity": int}
-            Returns None if no signal is generated.
+        OrderRequest or None
+            An order to submit, or None if no signal is generated.
 
         Decision Logic
         --------------
         1. Append close price to internal price history
-        2. Return None if fewer than `window` bars have been seen
+        2. Return None until the rolling window is full (warm-up)
         3. Compute fair value (SMA) and volatility (std dev)
         4. Compute threshold = spread_multiplier * volatility
         5. Compute deviation = close - fair_value
@@ -210,12 +185,12 @@ class MeanReversionStrategy(BaseStrategy):
         close_price = bar["close"]
         self.prices.append(close_price)
 
-        # Not enough data yet to compute indicators
-        if len(self.prices) < self.window:
+        # Warm-up: no signal until the window is full
+        if not self.prices.ready:
             return None
 
-        fair_value = self._compute_fair_value()
-        volatility = self._compute_volatility()
+        fair_value = self.prices.mean()
+        volatility = self.prices.std()
         threshold = self.spread_multiplier * volatility
         deviation = close_price - fair_value
 
@@ -232,7 +207,7 @@ class MeanReversionStrategy(BaseStrategy):
                 f"BUY signal|deviation={deviation:.4f} below -threshold={-threshold:.4f}|"
                 f"current position={position}"
             )
-            return {"action": "BUY", "quantity": self.order_size}
+            return self.buy(self.order_size)
 
         # SELL: price is sufficiently above fair value and we hold inventory to sell
         if deviation > threshold and position > 0:
@@ -241,6 +216,6 @@ class MeanReversionStrategy(BaseStrategy):
                 f"SELL signal|deviation={deviation:.4f} above threshold={threshold:.4f}|"
                 f"current position={position}"
             )
-            return {"action": "SELL", "quantity": sell_quantity}
+            return self.sell(sell_quantity)
 
         return None

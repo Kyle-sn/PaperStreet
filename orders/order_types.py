@@ -11,6 +11,25 @@ def _base_order() -> Order:
     return order
 
 
+def order_from_request(request):
+    """
+    Translate a strategy's OrderRequest into an IBKR Order.
+
+    This is the single boundary where the broker-agnostic OrderRequest produced
+    by a strategy becomes an ibapi Order. Only the order types a strategy can
+    currently emit (MKT, LMT) are handled; extend here as the OrderRequest
+    contract grows.
+    """
+    if request.order_type == "MKT":
+        order = market_order(request.action, request.quantity)
+    elif request.order_type == "LMT":
+        order = limit_order(request.action, request.quantity, request.limit_price)
+    else:
+        raise ValueError(f"Unsupported order_type: {request.order_type}")
+    order.tif = request.tif
+    return order
+
+
 def market_order(action, quantity):
     """
     A Market order is an order to buy or sell at the market bid or offer price. A market order

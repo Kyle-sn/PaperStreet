@@ -79,7 +79,7 @@ Using a mismatched or already-in-use client ID will cause a connection error.
 
 ### Strategy interface
 
-All strategies inherit `strategy/base_strategy.py::BaseStrategy` and implement `on_bar(bar: dict, position: float) -> dict | None`. Signals are `{"action": "BUY"|"SELL", "quantity": int}` or `None`. The strategy does not execute trades — it only produces signals.
+Bar strategies inherit `strategy/base_strategy.py::BaseStrategy` and implement `on_bar(bar: dict, position: float) -> OrderRequest | None`, building the return with `self.buy()`/`self.sell()` (`OrderRequest` is the typed signal in `strategy/signal.py`). The strategy does not execute trades — it only produces signals. Strategies are selected by name via `strategy/registry.py::build_strategy` (config-driven), not by import. Quoting strategies (e.g. ERCOT) are a separate family under `strategy/base_quoting_strategy.py::BaseQuotingStrategy`. See `docs/STRATEGY.md`.
 
 ### Backtesting
 

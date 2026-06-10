@@ -1,84 +1,104 @@
 """
 base_strategy.py
 
-Defines the abstract interface for all trading strategies.
+The contract every bar-driven strategy implements. It is the single interface
+the backtest engine and the live loop both consume — anything that satisfies it
+is plug-and-play in both, with no surrounding code changes.
 
-A strategy is responsible for:
-1. Receiving market data (one bar at a time)
-2. Maintaining any internal state (indicators, signals, etc.)
-3. Returning trading signals based on that data
+A strategy is a pure signal generator:
+1. Receives completed bars one at a time (on_bar)
+2. Maintains its own internal state (indicators)
+3. Returns OrderRequest objects (or None) — it never places orders itself
 
-This file establishes the contract that all concrete strategies must follow
-in order to integrate with the backtesting engine or live trading system.
+Scope
+-----
+One instance trades one symbol. To trade multiple symbols, run multiple
+instances. This keeps per-strategy state trivial (no per-symbol bookkeeping)
+and matches the mid-frequency design in docs/STRATEGY.md.
+
+Lifecycle hooks (on_start/on_stop/on_fill) default to no-ops so a strategy
+overrides only what it needs.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+
+from strategy.signal import OrderRequest
 
 
 class BaseStrategy(ABC):
     """
-    Abstract base class for trading strategies.
+    Abstract base class for bar-driven trading strategies.
 
-    All strategies must implement the `on_bar` method.
+    Concrete strategies must define a unique `name` (used for DB tagging and
+    registry lookup) and implement `on_bar`.
 
-    The backtesting engine (and later live system) will call `on_bar`
-    sequentially for each incoming data point (bar).
+    Attributes
+    ----------
+    name : str
+        Unique identifier. Set by the @register_strategy decorator, or as a
+        class attribute.
+    symbol : str
+        Symbol this instance trades. Set by the registry factory at build time;
+        defaults to "" for directly-constructed instances.
     """
 
+    name: str = ""
+    symbol: str = ""
+
     @abstractmethod
-    def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
+    def on_bar(self, bar: dict, position: float = 0.0) -> OrderRequest | None:
         """
-        Process a single bar of market data and optionally return a trading signal.
+        Process a single completed bar and optionally return an order.
 
         Parameters
         ----------
         bar : dict
-            A dictionary representing a single time step of market data.
-            Expected format:
-            {
-                "datetime": str or datetime,
-                "open": float,
-                "high": float,
-                "low": float,
-                "close": float,
-                "volume": float
-            }
-
-        position : float, optional
-            Current net position in shares for the instrument being traded.
-
-            In live trading: pass IBApp.get_position(symbol), populated by the
-            updatePortfolio EWrapper callback from TWS.
-
-            In backtesting: pass Portfolio.position, updated after each signal.
-
-            Defaults to 0.0 for backward compatibility with strategies that do
-            not use position (e.g. MovingAverageStrategy).
+            One time step of market data. Keys: datetime, open, high, low,
+            close, volume (see docs/DATA_MODEL.md).
+        position : float
+            Current net position in the traded symbol.
+            - Live: pass session.get_position(symbol) (broker-confirmed).
+            - Backtest: pass Portfolio.position.
+            Defaults to 0.0. Passing position rather than self-tracking avoids
+            inventory drift when a signal is rejected downstream.
 
         Returns
         -------
-        dict or None
-            A signal dictionary if a trade action is generated, otherwise None.
-
-            Expected signal format:
-            {
-                "action": "BUY" | "SELL",
-                "quantity": int
-            }
-
-        Notes
-        -----
-        - This method is called once per bar in chronological order.
-        - The strategy is responsible for maintaining its own internal state
-          (e.g., moving averages, indicators, past prices).
-        - Returning None means "no action".
-        - The execution of the signal (fills, slippage, etc.) is handled
-          by the portfolio or execution layer, NOT the strategy.
-
-        Example
-        -------
-         signal = strategy.on_bar(bar)
-         if signal:
-             print(signal["action"], signal["quantity"])
+        OrderRequest | None
+            An order to submit, or None for no action. Build it with
+            self.buy()/self.sell() so symbol and strategy are tagged for you.
         """
-        pass
+        ...
+
+    # ------------------------------------------------------------------
+    # Order construction helpers (auto-tag symbol + strategy name)
+    # ------------------------------------------------------------------
+
+    def buy(self, quantity: float, order_type: str = "MKT",
+            limit_price: float | None = None, tif: str = "DAY") -> OrderRequest:
+        return OrderRequest(
+            action="BUY", quantity=quantity, order_type=order_type,
+            limit_price=limit_price, tif=tif, symbol=self.symbol, strategy=self.name,
+        )
+
+    def sell(self, quantity: float, order_type: str = "MKT",
+             limit_price: float | None = None, tif: str = "DAY") -> OrderRequest:
+        return OrderRequest(
+            action="SELL", quantity=quantity, order_type=order_type,
+            limit_price=limit_price, tif=tif, symbol=self.symbol, strategy=self.name,
+        )
+
+    # ------------------------------------------------------------------
+    # Lifecycle hooks — override as needed; default to no-ops
+    # ------------------------------------------------------------------
+
+    def on_start(self) -> None:
+        """Called once when the strategy starts. Load warm-up history here."""
+
+    def on_stop(self) -> None:
+        """Called once when the strategy stops. Clean up state here."""
+
+    def on_fill(self, action: str, quantity: float, price: float) -> None:
+        """Called when an execution for this strategy is confirmed."""

@@ -91,6 +91,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Optional
 
+from strategy.base_quoting_strategy import BaseQuotingStrategy
+from strategy.registry import register_quoting_strategy
 from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
@@ -98,13 +100,14 @@ logger = setup_logger(__name__)
 N_INTERVALS = 4
 
 
-class ERCOTMarketMakingStrategy:
+@register_quoting_strategy("ercot_market_making")
+class ERCOTMarketMakingStrategy(BaseQuotingStrategy):
     """
     Two-sided market making strategy driven by ERCOT implied settlement estimates.
 
-    This strategy does not inherit from BaseStrategy — its interface is purpose-built
-    for settlement-based quoting rather than OHLCV bar consumption. It is intended
-    for use outside the IBKR infrastructure.
+    This is a *quoting* strategy (BaseQuotingStrategy), not a bar strategy: its
+    interface is purpose-built for settlement-based quoting rather than OHLCV bar
+    consumption. It is intended for use outside the IBKR infrastructure.
 
     Quote Format
     ------------

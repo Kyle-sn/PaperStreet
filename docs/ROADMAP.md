@@ -18,6 +18,10 @@ Things that are functional and reasonably reliable.
 - **Account/position snapshots** — written to DB on `accountDownloadEnd` and `updatePortfolio`
 - **Thread-safe order ID management** — `get_next_order_id()` with lock
 - **Logging** — centralized via `utils/log_config.py`; `setup_logger(__name__)` pattern
+- **Strategy framework** — `BaseStrategy` / `BaseQuotingStrategy` ABCs, typed `OrderRequest`
+  signal (`strategy/signal.py`), `RollingWindow` indicator state (`strategy/indicators.py`),
+  name-based registry + `build_strategy` factory, lifecycle hooks. Runners select strategies by
+  config. Contract test in `tests/test_strategy_contract.py`. (see `STRATEGY.md`)
 
 ---
 
@@ -27,9 +31,8 @@ Things actively being built or recently started.
 
 - **`market_data/` module** — bar storage, live data subscription wiring
 - **`contracts/` module** — centralized contract definitions
-- **`orders/` module** — order construction and submission layer; `OrderRequest` dataclass
+- **`orders/` module** — order construction and submission layer; `order_from_request` translates `OrderRequest` → ibapi `Order`
 - **`bars` database table** — schema and write path for storing historical and live bar data
-- **Strategy interface** — `BaseStrategy` ABC and `on_bar` / `on_fill` / `on_start` / `on_stop` pattern
 
 ---
 

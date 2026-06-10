@@ -21,54 +21,65 @@ to mid-frequency and would require significant re-architecture for HFT.
 
 ## Strategy Interface
 
-Every strategy should be implemented as a class that follows a consistent interface. This allows
-the system to run, test, and swap strategies without changing the surrounding infrastructure.
+There are two strategy families, kept deliberately separate because they consume different
+inputs and cannot be used interchangeably:
 
-Proposed base interface (to be formalized as a Python ABC):
+- **Bar strategies** (`strategy/base_strategy.py::BaseStrategy`) — consume OHLCV bars via
+  `on_bar` and emit `OrderRequest`s. This is the default family.
+- **Quoting strategies** (`strategy/base_quoting_strategy.py::BaseQuotingStrategy`) — consume
+  fair-value estimates via `on_estimate` and return a two-sided quote dict (e.g. the ERCOT
+  market maker).
+
+### One instance, one symbol
+
+A strategy instance trades exactly one symbol. To trade multiple symbols, run multiple
+instances. This keeps per-strategy state trivial (no per-symbol bookkeeping) and is why
+`on_bar` takes a bar but not a symbol — the symbol is fixed on the instance (`self.symbol`,
+set by the registry factory).
+
+### BaseStrategy (bar family)
 
 ```python
-class BaseStrategy:
-    name: str                          # unique identifier, used for logging and DB tagging
+class BaseStrategy(ABC):
+    name: str                          # unique id; set by @register_strategy; used for DB tagging
+    symbol: str                        # set by build_strategy() at construction
 
-    def on_bar(self, symbol: str, bar: dict) -> list[OrderRequest]:
-        """
-        Called when a new completed bar is available for the given symbol.
-        Returns a (possibly empty) list of OrderRequests.
-        """
-        ...
+    def on_bar(self, bar: dict, position: float = 0.0) -> OrderRequest | None: ...
 
-    def on_fill(self, symbol: str, side: str, qty: float, price: float):
-        """
-        Called when an execution is confirmed for this strategy.
-        Allows the strategy to update internal state (e.g. position tracking).
-        """
-        ...
+    # Order-construction helpers (auto-tag symbol + strategy name):
+    def buy(self, quantity, order_type="MKT", limit_price=None, tif="DAY") -> OrderRequest: ...
+    def sell(self, quantity, order_type="MKT", limit_price=None, tif="DAY") -> OrderRequest: ...
 
-    def on_start(self):
-        """Called once when the strategy is started. Load any warm-up state here."""
-        ...
-
-    def on_stop(self):
-        """Called once when the strategy is stopped. Clean up state here."""
-        ...
+    # Lifecycle hooks — default to no-ops, override as needed:
+    def on_start(self): ...            # load warm-up history here
+    def on_stop(self): ...             # clean up here
+    def on_fill(self, action, quantity, price): ...
 ```
+
+A strategy returns a single `OrderRequest` (or `None`) per bar — not a list. Build it with
+`self.buy()` / `self.sell()` so `symbol` and `strategy` are tagged automatically.
 
 ### OrderRequest
 
-Strategies should not build IBKR `Order` objects directly. They return `OrderRequest` objects
-(a plain dataclass) that the `orders/` layer translates into IBKR calls:
+Strategies never build IBKR `Order` objects directly. They return `OrderRequest` objects
+(`strategy/signal.py`, a plain dataclass) that the execution layer translates: `Portfolio`
+in backtest, `orders/order_types.py::order_from_request` → `placeOrder` in live.
 
 ```python
 @dataclass
 class OrderRequest:
-    symbol:      str
-    side:        str        # 'BUY' or 'SELL'
+    action:      str        # 'BUY' or 'SELL'
     quantity:    float
-    order_type:  str        # 'MKT', 'LMT'
+    order_type:  str = 'MKT'   # 'MKT' or 'LMT'
     limit_price: float | None = None
     tif:         str = 'DAY'
+    symbol:      str = ''   # populated automatically by buy()/sell()
     strategy:    str = ''   # populated automatically from strategy.name
 ```
+
+The field is `action` (not `side`) to match `orders/order_types.py` and `Portfolio`, so it
+threads through to IBKR without remapping. `__post_init__` validates action, order_type,
+limit_price presence, and positive quantity.
 
 ---
 
@@ -105,8 +116,9 @@ correctly. There are two approaches:
 2. **Query IBApp**: call `ib_app.get_position(symbol)` as the authoritative source. Slightly
    more latency, but always reflects broker-confirmed state.
 
-Recommended: use the `get_position()` query as the source of truth, and use an internal counter
-only as a sanity check.
+Recommended (and what the shipped strategies do): do not self-track. Position is injected into
+`on_bar(bar, position)` by the caller — `session.get_position(symbol)` live, `Portfolio.position`
+in backtest. This eliminates drift when a signal is rejected downstream.
 
 ---
 
@@ -126,27 +138,58 @@ Every strategy must implement at least:
 
 ---
 
+## Registry and Selection
+
+Strategies are selected **by name**, not by import. Each concrete strategy registers itself
+with a decorator:
+
+```python
+@register_strategy("mean_reversion")        # bar family
+class MeanReversionStrategy(BaseStrategy): ...
+
+@register_quoting_strategy("ercot_market_making")   # quoting family
+class ERCOTMarketMakingStrategy(BaseQuotingStrategy): ...
+```
+
+`strategy/__init__.py` imports every concrete module so the registries are populated on
+`import strategy`. Entry points then build by name + config — no imports to edit when swapping:
+
+```python
+from strategy.registry import build_strategy
+s = build_strategy("mean_reversion", symbol="SPY",
+                   params={"window": 20, "spread_multiplier": 0.5})
+```
+
+`run_live.py` and `backtesting/run_backtest.py` both drive off a `STRATEGY_NAME` /
+`STRATEGY_PARAMS` config block at the top of the file.
+
 ## Naming and File Conventions
 
 - Each strategy lives in its own file under `strategy/`
-- File name matches strategy class name in snake_case: `strategy/mean_reversion.py` → `class MeanReversion`
-- The `strategy/` `__init__.py` does not auto-import strategies — import explicitly where needed
-- Strategy `name` attribute must be unique across all strategies, as it is used to tag orders
-  and executions in the database
+- File name matches strategy class name in snake_case
+- Strategy `name` must be unique across all strategies — it is the registry key and tags
+  orders/executions in the database. The `@register_*` decorator sets `cls.name` for you.
 
 ---
 
 ## State and Warm-Up
 
 Mid-frequency strategies typically require a lookback period before generating valid signals
-(e.g. a 20-period moving average needs 20 bars of history). Handle this in `on_start()`:
+(e.g. a 20-period moving average needs 20 bars of history).
 
-1. Pull the required lookback from the `bars` database table (preferred — no IBKR call needed)
-2. If unavailable locally, request via `reqHistoricalData` on startup
-3. Mark the strategy as "warming up" and suppress signals until the minimum bar count is met
+Use `strategy/indicators.py::RollingWindow` for bounded rolling state — it is a `deque` with
+fixed `maxlen`, so memory stays constant in a long-running live loop (a plain list grows
+without bound). `RollingWindow.ready` is `True` once the window is full; gate signals on it:
 
-Never generate signals from an insufficiently populated bar window — this is a common source of
-spurious trades at system start.
+```python
+self.prices.append(bar["close"])
+if not self.prices.ready:
+    return None        # warm-up
+```
+
+For a faster start, pre-load the lookback in `on_start()` (preferred: from the `bars` table;
+otherwise `reqHistoricalData`). Never generate signals from an under-populated window — a common
+source of spurious trades at system start.
 
 ---
 
