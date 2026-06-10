@@ -42,6 +42,10 @@ Historical OHLCV bars fetched from IB. Keyed on
 `(symbol, sec_type, bar_size, bar_datetime, what_to_show)` so
 re-fetching the same range is idempotent. Populated automatically
 by `ibkr_client._fetch()` after every `reqHistoricalData` response.
+`bar_datetime` is normalized to a canonical ISO string on write
+(`_normalize_bar_datetime`) so the idempotency key holds regardless of
+the caller's input format; `migrate_bar_datetimes()` (run by
+`initialize_db`) heals legacy rows written before this existed.
 
 ### `orders`
 One row per order submitted to IB via `place_order()`. Written before

@@ -37,6 +37,14 @@ logger = setup_logger(__name__)
 # Daily bar sizes — datetime column is "YYYYMMDD", no time component
 _DAILY_BAR_SIZES = {"1 day", "1 week", "1 month"}
 
+# Intraday reqHistoricalData(formatDate=1) returns timestamps in TWS's configured
+# display timezone. This API version emits no timezone label (older versions
+# appended a name like "America/Chicago"), so we localize naive timestamps to
+# this zone. Change it to match your TWS Time Zone setting
+# (Global Configuration > API > Settings). Central is the default here because
+# that is what this TWS is configured to (e.g. SPY's 9:30 ET open arrives as 8:30).
+DEFAULT_INTRADAY_TZ = "America/Chicago"
+
 
 class IBKRMarketDataClient(MarketDataProvider):
 
@@ -149,14 +157,16 @@ class IBKRMarketDataClient(MarketDataProvider):
         if bar_size in _DAILY_BAR_SIZES:
             df["datetime"] = pd.to_datetime(df["datetime"], format="%Y%m%d")
         else:
-            # Intraday: "20260330 09:30:00 America/Chicago"
-            # Split off the timezone name, parse the datetime, then localize
+            # Intraday arrives as "YYYYMMDD HH:MM:SS", optionally followed by a
+            # timezone name. The date/time separator may be one or two spaces, so
+            # split on whitespace generically rather than a fixed count.
+            #   2 tokens -> "YYYYMMDD", "HH:MM:SS"        (no tz label; localize)
+            #   3 tokens -> ..., plus a timezone name      (use it directly)
             def _parse_intraday(s: str) -> pd.Timestamp:
-                parts = s.rsplit(" ", 1)
-                dt = pd.to_datetime(parts[0], format="%Y%m%d %H:%M:%S")
-                if len(parts) == 2:
-                    dt = dt.tz_localize(parts[1])
-                return dt
+                parts = s.split()
+                dt = pd.to_datetime(f"{parts[0]} {parts[1]}", format="%Y%m%d %H:%M:%S")
+                tz = parts[2] if len(parts) >= 3 else DEFAULT_INTRADAY_TZ
+                return dt.tz_localize(tz)
 
             df["datetime"] = df["datetime"].apply(_parse_intraday)
 

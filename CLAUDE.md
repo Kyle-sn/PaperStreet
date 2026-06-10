@@ -95,4 +95,4 @@ SQLite at `data/paperstreet.db` (WAL mode, foreign keys on). Schema lives in `da
 
 ### Test setup
 
-`tests/conftest.py` provides a `mock_app` fixture (an `IBApp` with a mocked `EClient` so no real TWS connection is needed) and a `make_contract` fixture. Integration tests that do require a live database are in `tests/db_integration_test.py`.
+`tests/conftest.py` provides a `mock_app` fixture (an `IBApp` with a mocked `EClient` so no real TWS connection is needed) and a `make_contract` fixture. Database tests are hermetic: `tests/test_database.py` exercises every table against a throwaway SQLite file (via a `temp_db` fixture that redirects `database.db._DB_PATH`) — no TWS, no real orders. `market_data/test_market_data.py` is the only suite that requires a live TWS connection (it fetches real bars); skip it when TWS is not running.

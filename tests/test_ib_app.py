@@ -116,7 +116,7 @@ def test_update_account_value_realized_pnl(mock_app):
 
 
 def test_update_account_value_unrealized_pnl(mock_app):
-    mock_app.updateAccountValue("UnrealizedPNL", "1250.75", "USD", "U123")
+    mock_app.updateAccountValue("UnrealizedPnL", "1250.75", "USD", "U123")
     assert mock_app.get_unrealized_pnl() == 1250.75
 
 

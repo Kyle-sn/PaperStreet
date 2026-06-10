@@ -259,6 +259,12 @@ Order construction should live in `orders/` only.
 ## Conventions
 
 - All monetary values are stored as `REAL` (float) in USD unless otherwise noted.
+- `bar_datetime` in `market_data_bars` is always stored as a canonical **ISO 8601** string —
+  date-only (`"YYYY-MM-DD"`) for daily/weekly/monthly bars, full ISO for intraday.
+  `database/market_data.py::_normalize_bar_datetime` coerces every write (raw IBKR
+  `"YYYYMMDD"` / `"YYYYMMDD  HH:MM:SS"` or already-ISO) into this form so the UNIQUE key
+  dedups correctly. `migrate_bar_datetimes()` (run by `initialize_db`) rewrites any legacy
+  non-ISO rows and drops the duplicates they created.
 - `executed_at` in `executions` uses the timestamp string from IBKR's `Execution.time` field,
   which is in the format `"YYYYMMDD  HH:MM:SS"` (note double space). Parse before storing if
   you want proper DATETIME indexing.

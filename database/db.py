@@ -19,7 +19,11 @@ def get_connection() -> sqlite3.Connection:
 
 
 def initialize_db() -> None:
-    """Create all tables if they don't already exist."""
+    """Create all tables if they don't already exist, then self-heal stored data."""
     schema = _SCHEMA_PATH.read_text()
     with get_connection() as conn:
         conn.executescript(schema)
+
+    # Deferred import avoids a circular dependency (market_data imports .db).
+    from .market_data import migrate_bar_datetimes
+    migrate_bar_datetimes()
