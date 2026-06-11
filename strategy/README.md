@@ -8,17 +8,20 @@ This directory contains all trading strategies. Each strategy inherits from `Bas
 
 ### 1. Create your strategy file here in `strategy/`
 
-Inherit from `BaseStrategy` and implement `on_bar`. That is the only contract required.
+Inherit from `BaseStrategy`, add the `@register_strategy` decorator, and implement `on_bar`. That is the only contract required.
 
 ```python
 # strategy/my_strategy.py
 
 from strategy.base_strategy import BaseStrategy
+from strategy.registry import register_strategy
+from strategy.signal import OrderRequest
 from utils.log_config import setup_logger
 
 logger = setup_logger(__name__)
 
 
+@register_strategy("my_strategy")
 class MyStrategy(BaseStrategy):
 
     def __init__(self, ...):
@@ -27,36 +30,30 @@ class MyStrategy(BaseStrategy):
         # Do NOT initialize a position counter here — see Position Rule below
         ...
 
-    def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
+    def on_bar(self, bar: dict, position: float = 0.0) -> OrderRequest | None:
         # Process the incoming bar
-        # Return a signal dict or None
+        # Return self.buy(...) / self.sell(...), or None
         ...
 ```
 
-### 2. Wire it into `run_live.py`
+### 2. Register it in `strategy/__init__.py`
 
-Only `initialize_strategy()` needs to change:
-
-```python
-from strategy.my_strategy import MyStrategy
-
-def initialize_strategy():
-    strategy = MyStrategy(...)
-    contract = ContractHandler.get_contract("SPY")
-    return strategy, contract
-```
-
-The trading loop, signal execution, and position fetching all remain untouched. They only depend on the `on_bar` interface, not the concrete strategy.
-
-### 3. Wire it into `run_backtest.py`
-
-Same swap — just change the import and instantiation:
+Add one import line so the decorator runs on package import:
 
 ```python
-from strategy.my_strategy import MyStrategy
-
-strategy = MyStrategy(...)
+from strategy import my_strategy  # noqa: F401
 ```
+
+### 3. Select it via config
+
+In `run_live.py` or `run_backtest.py`, set the strategy name and params at the top of the file:
+
+```python
+STRATEGY_NAME = "my_strategy"
+STRATEGY_PARAMS = {"window": 20, ...}
+```
+
+The engine calls `build_strategy(STRATEGY_NAME, symbol=..., params=STRATEGY_PARAMS)` — no import edits needed when swapping strategies.
 
 ---
 
@@ -65,7 +62,7 @@ strategy = MyStrategy(...)
 Every strategy must implement this signature:
 
 ```python
-def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
+def on_bar(self, bar: dict, position: float = 0.0) -> OrderRequest | None:
 ```
 
 **`bar`** is a dict with the following keys:
@@ -77,15 +74,18 @@ def on_bar(self, bar: dict, position: float = 0.0) -> dict | None:
 | `high`     | float   | High price               |
 | `low`      | float   | Low price                |
 | `close`    | float   | Close price              |
-| `volume`   | float   | Volume                   |
+| `volume`   | Decimal | Volume                   |
 
 **`position`** is the current net shares held. See the Position Rule below.
 
-**Return value** is either `None` (no action) or a signal dict:
+**Return value** is either `None` (no action) or an `OrderRequest` built with `self.buy()` / `self.sell()`:
 
 ```python
-{"action": "BUY" | "SELL", "quantity": int}
+return self.buy(quantity=10)                               # market order
+return self.sell(quantity=10, order_type="LMT", limit_price=155.00)  # limit order
 ```
+
+`self.buy()` / `self.sell()` auto-populate `symbol` and `strategy` on the `OrderRequest` — do not set them by hand.
 
 ---
 
@@ -104,11 +104,13 @@ Self-tracking causes drift: the strategy's internal count can diverge from reali
 
 ## Existing Strategies
 
-| File                         | Class                   | Description                                             |
-|------------------------------|-------------------------|---------------------------------------------------------|
-| `base_strategy.py`           | `BaseStrategy`          | Abstract base class. All strategies inherit from this.  |
-| `mean_reversion_strategy.py` | `MeanReversionStrategy` | SMA + volatility band mean reversion. Inventory-aware.  |
-| `moving_average.py`          | `MovingAverageStrategy` | Simple SMA crossover baseline. No position awareness.   |
+| File                              | Class                        | Family   | Description                                             |
+|-----------------------------------|------------------------------|----------|---------------------------------------------------------|
+| `base_strategy.py`                | `BaseStrategy`               | —        | Abstract base class for bar strategies.                 |
+| `base_quoting_strategy.py`        | `BaseQuotingStrategy`        | —        | Abstract base class for quoting strategies.             |
+| `mean_reversion_strategy.py`      | `MeanReversionStrategy`      | bar      | SMA + volatility band mean reversion. Inventory-aware.  |
+| `moving_average.py`               | `MovingAverageStrategy`      | bar      | Simple SMA crossover baseline. No position awareness.   |
+| `ercot_market_making_strategy.py` | `ERCOTMarketMakingStrategy`  | quoting  | ERCOT fair-value market maker (two-sided quotes).       |
 
 ---
 
