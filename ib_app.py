@@ -2,19 +2,16 @@ import threading
 from decimal import Decimal
 
 from ibapi.client import EClient
-from ibapi.commission_report import CommissionReport
+from ibapi.commission_and_fees_report import CommissionAndFeesReport
 from ibapi.common import OrderId
 from ibapi.contract import Contract
 from ibapi.execution import Execution
 from ibapi.order import Order
 from ibapi.order_state import OrderState
-from ibapi.utils import floatToStr
+from ibapi.utils import floatMaxString  # ibapi 10.x; replaces the removed floatToStr
 
 def decimalMaxString(val):
     return str(val)
-
-def floatMaxString(val):
-    return floatToStr(val)
 from ibapi.wrapper import EWrapper
 
 from database import account as _adb
@@ -262,19 +259,23 @@ class IBApp(EWrapper, EClient):
         """
         logger.info("PositionEnd")
 
-    def commissionReport(self, commission_and_fees_report: CommissionReport):
+    def commissionAndFeesReport(self, commission_and_fees_report: CommissionAndFeesReport):
         """
         When an order is filled either fully or partially, the IBApi.EWrapper.execDetails and
-        IBApi.EWrapper.commissionReport events will deliver IBApi.Execution and
+        IBApi.EWrapper.commissionAndFeesReport events will deliver IBApi.Execution and
         IBApi.CommissionAndFeesReport objects. This allows to obtain the full picture of the
         order’s execution and the resulting commissions.
+
+        Note: this callback and its report class were renamed in ibapi 10.x
+        (commissionReport/CommissionReport, field `commission`) — the override
+        name must match the current EWrapper method or it silently never fires.
         """
         logger.info(commission_and_fees_report)
         r = commission_and_fees_report
         try:
             _tdb.update_execution_commission(
                 ib_exec_id=r.execId,
-                commission=r.commission if r.commission < 1e308 else None,
+                commission=r.commissionAndFees if r.commissionAndFees < 1e308 else None,
                 commission_currency=r.currency or None,
                 realized_pnl=r.realizedPNL if r.realizedPNL < 1e308 else None,
             )
@@ -366,7 +367,7 @@ class IBApp(EWrapper, EClient):
             "low": bar.low,
             "close": bar.close,
             "volume": bar.volume,
-            "wap": bar.average,
+            "wap": bar.wap,  # ibapi 10.x renamed BarData.average -> BarData.wap
             "bar_count": bar.barCount,
         })
 
