@@ -46,14 +46,22 @@ from strategy import my_strategy  # noqa: F401
 
 ### 3. Select it via config
 
-In `run_live.py` or `run_backtest.py`, set the strategy name and params at the top of the file:
+In `run_live.py`, set the name and params at the top of the file:
 
 ```python
 STRATEGY_NAME = "my_strategy"
 STRATEGY_PARAMS = {"window": 20, ...}
 ```
 
-The engine calls `build_strategy(STRATEGY_NAME, symbol=..., params=STRATEGY_PARAMS)` — no import edits needed when swapping strategies.
+For a backtest, edit the `CONFIG` block in `backtesting/run_backtest.py` (or call
+`run_backtest(BacktestConfig(...))` directly):
+
+```python
+CONFIG = BacktestConfig(strategy_name="my_strategy", symbol="SPY",
+                        strategy_params={"window": 20, ...})
+```
+
+Both call `build_strategy(name, symbol=..., params=...)` — no import edits needed when swapping strategies.
 
 ---
 

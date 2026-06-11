@@ -43,39 +43,67 @@ The backtesting harness is a lightweight event loop that replays bars in chronol
 and calls the same strategy interface used in live trading. A strategy should not know whether
 it is running live or in a backtest.
 
+It is deliberately an **event loop**, not a vectorized engine. Every PaperStreet strategy is
+inventory-aware (see `STRATEGY.md` → Position Awareness): signals are gated on the position
+realized by prior fills, so the strategy is path-dependent. A bar-by-bar loop that feeds
+`portfolio.position` back into `on_bar` is the natural fit; vectorized libraries (vectorbt etc.)
+assume signals are independent of inventory and so are not used (see `ROADMAP.md` → Decided
+Against). When research needs parameter sweeps, loop this engine rather than reaching for one of
+those libraries.
+
+A run is fully described by a single `BacktestConfig` (`backtesting/config.py`) — strategy
+name + params, symbol, data window, and cost/fill model. `run_backtest(config)`
+(`backtesting/runner.py`) is the one-call entry point; it builds the strategy by name from the
+same registry the live loop uses, so swapping anything is a config change, not an engine edit.
+
 ```
-  bars table / flat file
+  BacktestConfig  (strategy name + params, symbol, window, costs, fill model)
         │
-        │  chronological bar iteration
         ▼
-  BacktestEngine
-        │  calls strategy.on_bar(bar, position=portfolio.position)
+  BarDataSource (backtesting/data.py)        cache-first: market_data_bars → IBKR on miss
+        │  DataFrame: datetime + OHLCV
         ▼
-  Strategy instance
-        │  returns OrderRequest | None  (one symbol per instance)
+  BacktestEngine (backtesting/engine.py)
+        │  per bar: fill prior signal → strategy.on_bar(bar, portfolio.position) → queue
         ▼
-  Portfolio (simulated fills)
-        │  updates simulated position / cash
+  SimBroker (backtesting/broker.py)          fills + commission + slippage → Fill
+        │
         ▼
-  Results / metrics
+  Portfolio (backtesting/portfolio.py)       long/short cash + position + realized PnL
+        │
+        ▼
+  compute_metrics → BacktestResult           equity curve + trades + metrics; .summary()
 ```
 
-> Current state: `BacktestEngine` + `Portfolio` fill a single `OrderRequest` at **bar close**
-> with no slippage/costs (see `engine.py`, `portfolio.py`). The richer fill model below
-> (`BacktestBroker`, next-bar-open fills, `on_fill` callbacks, transaction costs) is the
-> intended target, not yet built.
+Module map:
 
-### BacktestBroker (simulated, planned)
+| File | Responsibility |
+|---|---|
+| `config.py` | `BacktestConfig` — the declarative run spec |
+| `data.py` | `load_bars()` — cache-first loader (`db` / `ibkr` / `auto`) |
+| `broker.py` | `SimBroker` — fill model, commission, slippage; emits `Fill` |
+| `portfolio.py` | `Portfolio` — cash/position accounting with long & short support |
+| `engine.py` | `BacktestEngine` — the replay loop (enforces no-lookahead) |
+| `metrics.py` | `compute_metrics()` — the output-metrics table below |
+| `result.py` | `BacktestResult` — equity + trades + metrics, `.summary()` / frames |
+| `runner.py` | `run_backtest(config)` — orchestration entry point |
+| `run_backtest.py` | thin CLI with a `CONFIG` block, like `run_live.py` |
 
-The planned simulated broker handles `OrderRequest`s with simple fill assumptions:
+### SimBroker fill assumptions
 
-- **Market orders**: fill at the next bar's open price
-- **Limit orders**: fill if the next bar's high (for buys) or low (for sells) crosses the limit
-- No partial fills simulated (all-or-nothing)
-- No queue position modeled
+`SimBroker` handles `OrderRequest`s with simple, conservative assumptions:
+
+- **Market orders**: fill at the next bar's open (`fill="next_open"`, the default and only
+  lookahead-safe model), then pay `slippage_bps` of that price — buys fill higher, sells lower.
+- **Limit orders**: fill only if the bar trades through the limit (buy: low ≤ limit; sell:
+  high ≥ limit), at the better of the limit and the reference price. Limit fills pay no slippage.
+- Commission is `max(commission_min, commission_per_share × qty)` per fill.
+- Good-for-one-bar: an unfilled limit is dropped, not carried forward. No partial fills, no
+  queue position.
 
 These are optimistic assumptions. Real fill quality at mid-frequency will be worse, especially
-in illiquid names or around data releases.
+in illiquid names or around data releases. A `fill="close"` model (fill on the signalling bar's
+own close) exists for quick comparisons only — it is optimistic and not lookahead-safe.
 
 ---
 
@@ -106,8 +134,10 @@ The most common backtesting error. Rules:
    used for signal generation vs. which period's price is used for fill simulation.
 4. Volume-weighted features (VWAP, WAP) from bar N are only known after bar N closes.
 
-The backtest engine enforces rule 1 by design (market orders fill at next bar's open). Rules
-2-4 are the responsibility of the strategy author.
+The backtest engine enforces rule 1 by design: under the default `next_open` model, each bar
+first fills the order queued on the *previous* bar (at this bar's open) and only then calls
+`strategy.on_bar` on this bar's close, so a signal can never trade on the same bar that produced
+it. Rules 2-4 are the responsibility of the strategy author.
 
 ---
 
@@ -141,6 +171,32 @@ portion for development and the held-out tail for final validation.
 
 ---
 
+## Usage
+
+Programmatic (notebooks, scripts):
+
+```python
+from backtesting import BacktestConfig, run_backtest
+
+result = run_backtest(BacktestConfig(
+    strategy_name="mean_reversion", symbol="SPY",
+    strategy_params={"window": 20, "spread_multiplier": 0.5, "order_size": 10},
+    bar_size="1 day", starting_cash=100_000, slippage_bps=1.0,
+))
+print(result.summary())          # metrics table
+result.equity_frame().plot()     # equity curve
+result.trades_frame()            # trade log
+```
+
+CLI: edit the `CONFIG` block in `backtesting/run_backtest.py`, then
+`python backtesting/run_backtest.py`.
+
+Data is read from the local `market_data_bars` cache by default (`data_source="auto"`) and
+only fetched from TWS on a miss. Pre-warm a symbol for fully offline iteration with
+`python -m backtesting.data SYMBOL [bar_size] [duration]`.
+
 ## Status
 
-Backtesting infrastructure is not yet built. This document describes the intended design.
+The **bar-strategy** harness is built (`backtesting/`, see the module map above) with hermetic
+tests in `tests/test_backtest.py`. A separate **quoting-family** (event-replay) backtester for
+`BaseQuotingStrategy` is not yet built (see `ROADMAP.md`).

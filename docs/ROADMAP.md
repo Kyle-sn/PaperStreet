@@ -22,6 +22,11 @@ Things that are functional and reasonably reliable.
   signal (`strategy/signal.py`), `RollingWindow` indicator state (`strategy/indicators.py`),
   name-based registry + `build_strategy` factory, lifecycle hooks. Runners select strategies by
   config. Contract test in `tests/test_strategy_contract.py`. (see `STRATEGY.md`)
+- **Backtesting harness (bar family)** — config-driven `run_backtest(BacktestConfig)`
+  (`backtesting/`): cache-first `BarDataSource`, `SimBroker` with next-bar-open fills + limit
+  crossing + commission/slippage, long/short `Portfolio`, `compute_metrics` (Sharpe, drawdown,
+  win rate, …), and a `BacktestResult` with `.summary()`. Hermetic tests in
+  `tests/test_backtest.py`. (see `BACKTESTING.md`)
 
 ---
 
@@ -43,11 +48,17 @@ Prioritized things not yet started.
 - **`positions/` module** — position query helpers wrapping `ib_app.get_position()`
 - **Risk layer in `orders/`** — system-wide pre-order checks enforced in `place_order()` before any `placeOrder` call: per-order share size limit, kill switch flag, and buying power / max exposure check against `self.account`
 - **Daily loss limit** — session-level circuit breaker that halts new order submissions after realized + unrealized PnL drops below a configured threshold; reads from `self.account`
-- **Backtesting harness** — `BacktestEngine` + simulated `BacktestBroker`; see `BACKTESTING.md`
+- **Backtesting: quoting family** — event-replay backtester for `BaseQuotingStrategy`
+  (settlement/estimate stream, not OHLCV bars); the bar-family harness is built (see Working)
 - **Secrets manager** — replace hardcoded credentials and account number with a secrets manager (e.g. Windows Credential Manager, AWS Secrets Manager, or similar) before switching to IB Gateway
 - **IB Gateway + IBC** — switch from TWS to headless IB Gateway; use IBC for automated login; blocked on secrets manager being in place first
 - **Reconnect logic** — detect connection drop (error codes 1100/1102), re-subscribe to account updates, re-warm strategies
 - **Strategy warm-up** — pull lookback bars from local DB on `on_start()`; suppress signals until minimum bar count met
+- **Research parameter sweeps on the custom engine** — thin grid-search wrapper that loops
+  `run_backtest()` over a parameter grid (optionally multiprocessed), feeding the research
+  workflow. Built on the custom engine rather than a vectorized library so sweeps honor the
+  same inventory-aware, path-dependent fills as validation (see Decided Against). Output is
+  candidate parameter sets that must still pass a single `run_backtest()` before paper trading.
 - **First strategy** — signal research → backtest → paper trading (see `STRATEGY.md` for candidates)
 - **CONVENTIONS.md** — document coding patterns, naming conventions, error handling rules
 
@@ -67,3 +78,4 @@ Things considered and explicitly not being pursued, with the reason.
 | External broker / exchange | Not planned | IBKR is the broker; no plans to add Alpaca, Tradier, etc. |
 | Real-time dashboard / UI | Not planned | Logging + DB queries are sufficient for monitoring at this stage |
 | Cloud deployment | Not planned | Runs locally against IB Gateway; cloud adds operational complexity with no clear benefit yet |
+| Third-party / vectorized backtesters (vectorbt, backtrader, zipline, backtesting.py) | Not planned | Every such library imposes its own strategy API, breaking the live/backtest parity that the custom `on_bar`/`OrderRequest` contract exists to guarantee. Vectorized engines (vectorbt) also assume signals are independent of realized inventory — but **all PaperStreet strategies are inventory-aware** (position-gated, e.g. `position < max_position`), which is path-dependent and exactly what those engines model poorly. The custom engine stays the single source of truth. |

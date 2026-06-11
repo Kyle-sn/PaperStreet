@@ -108,6 +108,18 @@ compute signals from it. They should not reach into `IBApp` directly for market 
 
 ## Position Awareness
 
+**Inventory awareness is a requirement, not an option — every PaperStreet strategy is
+inventory-aware.** Signals are gated on the current position (e.g. `position < max_position`
+before adding, `position > 0` before selling) so the strategy never double-enters or oversizes
+an exit. This is a deliberate, system-wide design constraint with two consequences worth stating:
+
+- Strategies are **path-dependent**: the decision on bar N depends on fills realized over bars
+  1…N-1. This is why backtesting uses the custom event-loop engine and not a vectorized library
+  that assumes signals are independent of inventory (see `ROADMAP.md` → Decided Against, and
+  `BACKTESTING.md`).
+- Position must come from an authoritative source, injected per call (below), so the strategy's
+  view of inventory matches reality in both live and backtest.
+
 A strategy should know its current position to avoid double-entry and to size exit orders
 correctly. There are two approaches:
 
@@ -160,8 +172,10 @@ s = build_strategy("mean_reversion", symbol="SPY",
                    params={"window": 20, "spread_multiplier": 0.5})
 ```
 
-`run_live.py` and `backtesting/run_backtest.py` both drive off a `STRATEGY_NAME` /
-`STRATEGY_PARAMS` config block at the top of the file.
+`run_live.py` drives off a `STRATEGY_NAME` / `STRATEGY_PARAMS` config block at the top of the
+file; `backtesting/run_backtest.py` drives off a `CONFIG = BacktestConfig(strategy_name=...,
+strategy_params=...)` block (see `BACKTESTING.md`). Both select the strategy by name — no import
+edits when swapping.
 
 ## Naming and File Conventions
 

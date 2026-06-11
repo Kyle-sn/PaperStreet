@@ -1,148 +1,111 @@
 """
 portfolio.py
 
-Simulates a trading portfolio for backtesting purposes.
+Simulated portfolio accounting for backtests.
 
-Responsibilities
-----------------
-- Track available cash
-- Track current position (number of shares)
-- Process trading signals (BUY/SELL)
-- Maintain a log of executed trades
-- Compute total portfolio value over time
+Tracks cash, net position (long *or* short — the old version was long-only and
+silently dropped the sell side of symmetric strategies), weighted-average cost,
+and realized PnL. It consumes Fills from SimBroker; it does not decide fills.
 
-Execution Model
----------------
-- Trades are executed immediately at the bar's close price
-- No slippage or latency is modeled
-- No commissions or fees are included (yet)
-
-This is a simplified simulation intended for:
-- validating strategy logic
-- building the backtesting pipeline
-
-NOT intended for production-grade backtesting accuracy.
+Position is the authoritative source the engine feeds back into
+strategy.on_bar(bar, position), mirroring how live trading injects the
+broker-confirmed position — so a strategy sees the same information set in both.
 """
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Trade:
+    """One executed fill, with the realized PnL it produced (0 for trades that
+    only open/add to a position; non-zero when they reduce/close one)."""
+
+    datetime: object
+    action: str
+    quantity: float
+    price: float
+    commission: float
+    realized: float
 
 
 class Portfolio:
     """
-    Represents a simulated trading portfolio.
+    Cash + position accounting with long/short support.
 
     Attributes
     ----------
     cash : float
-        Current available cash balance.
-
-    position : int
-        Current number of shares held.
-        - 0 means no position
-        - positive value means long position
-
-    trade_log : list
-        List of executed trades.
-        Each entry is a tuple:
-        (action, price, quantity)
-
-    Notes
-    -----
-    - This implementation only supports long positions (no shorting)
-    - Position sizing is determined entirely by the strategy
-    - Risk management is not enforced here
+        Available cash. A buy reduces it, a sell increases it; commissions are
+        deducted on every fill.
+    position : float
+        Net shares. Positive long, negative short, 0 flat.
+    avg_cost : float
+        Weighted-average entry price of the open position (0 when flat).
+    realized_pnl : float
+        Cumulative PnL from closing/reducing positions (excludes commission).
+    commission_total : float
+        Cumulative commission paid.
+    trades : list[Trade]
+        Every applied fill, in order.
     """
 
-    def __init__(self, starting_cash: float = 10000):
-        """
-        Initialize the portfolio.
-
-        Parameters
-        ----------
-        starting_cash : float, optional
-            Initial capital for the backtest.
-            Default is 10,000.
-        """
+    def __init__(self, starting_cash: float = 100_000.0, allow_short: bool = True):
+        self.starting_cash = starting_cash
         self.cash = starting_cash
-        self.position = 0
-        self.trade_log = []
+        self.position = 0.0
+        self.avg_cost = 0.0
+        self.realized_pnl = 0.0
+        self.commission_total = 0.0
+        self.allow_short = allow_short
+        self.trades: list[Trade] = []
 
-    def process_signal(self, signal, bar: dict) -> None:
-        """
-        Process a trading signal and update portfolio state.
+    def apply(self, fill) -> None:
+        """Apply a Fill, updating cash, position, average cost, and realized PnL."""
+        signed = fill.quantity if fill.action == "BUY" else -fill.quantity
 
-        Parameters
-        ----------
-        signal : OrderRequest or None
-            Order produced by a strategy (action, quantity). If None, no action.
-            Order type / limit price are ignored here — the backtest fills every
-            order at the bar close (see Execution Model in the module docstring).
+        # Long-only guard: cap a sell at the current long position so we never go
+        # net short when shorting is disabled. A fully-suppressed sell is a no-op.
+        if not self.allow_short and signed < 0:
+            signed = max(signed, -self.position)
+            if signed == 0:
+                return
 
-        bar : dict
-            Market data for the current time step.
-            Must contain:
-            - "close" (used as execution price)
+        price = fill.price
+        new_position = self.position + signed
 
-        Behavior
-        --------
-        - BUY:
-            * Checks if sufficient cash is available
-            * Deducts cash and increases position
+        realized = 0.0
+        # Reducing exposure: position and the trade point opposite ways.
+        if self.position != 0 and (self.position > 0) != (signed > 0):
+            closing = min(abs(signed), abs(self.position))
+            direction = 1 if self.position > 0 else -1
+            realized = (price - self.avg_cost) * closing * direction
+            self.realized_pnl += realized
 
-        - SELL:
-            * Checks if sufficient shares are held
-            * Increases cash and reduces position
+        # Update weighted-average cost.
+        if new_position == 0:
+            self.avg_cost = 0.0
+        elif (self.position >= 0) == (new_position >= 0) and abs(new_position) > abs(self.position):
+            # Increasing same-side exposure (including opening from flat).
+            self.avg_cost = (
+                self.avg_cost * abs(self.position) + price * abs(signed)
+            ) / abs(new_position)
+        elif (self.position > 0) != (new_position > 0):
+            # Crossed through zero: the residual is a fresh position at this price.
+            self.avg_cost = price
+        # else: reducing same-side exposure — avg_cost is unchanged.
 
-        - If constraints are not met:
-            * Signal is ignored (no partial fills)
+        self.cash -= price * signed
+        self.cash -= fill.commission
+        self.commission_total += fill.commission
+        self.position = new_position
 
-        Notes
-        -----
-        - All trades are executed at the bar's closing price
-        - No transaction costs are applied
-        - No partial fills are supported
-        """
-        if signal is None:
-            return
+        self.trades.append(Trade(
+            datetime=fill.datetime, action=fill.action, quantity=abs(signed),
+            price=price, commission=fill.commission, realized=realized,
+        ))
 
-        price = bar["close"]
-        quantity = signal.quantity
-        action = signal.action
-
-        if action == "BUY":
-            cost = price * quantity
-
-            # Ensure sufficient cash
-            if self.cash >= cost:
-                self.cash -= cost
-                self.position += quantity
-
-                self.trade_log.append(("BUY", price, quantity))
-
-        elif action == "SELL":
-            # Ensure sufficient position
-            if self.position >= quantity:
-                self.cash += price * quantity
-                self.position -= quantity
-
-                self.trade_log.append(("SELL", price, quantity))
-
-    def get_value(self, current_price: float) -> float:
-        """
-        Calculate total portfolio value.
-
-        Parameters
-        ----------
-        current_price : float
-            The current market price of the asset.
-
-        Returns
-        -------
-        float
-            Total portfolio value:
-            cash + (position * current_price)
-
-        Notes
-        -----
-        - This represents mark-to-market valuation
-        - Assumes positions can be liquidated at current_price
-        """
-        return self.cash + (self.position * current_price)
+    def mark(self, price: float) -> float:
+        """Mark-to-market equity: cash + position valued at `price`."""
+        return self.cash + self.position * price

@@ -46,9 +46,9 @@ python run_live.py
 python backtesting/run_backtest.py
 ```
 
-**Fetch historical data:**
+**Fetch + cache historical data (for offline backtests):**
 ```bash
-python backtesting/run_ibkr_data.py
+python -m backtesting.data SYMBOL [bar_size] [duration]   # e.g. SPY "1 day" "5 Y"
 ```
 
 ## Architecture
@@ -83,7 +83,7 @@ Bar strategies inherit `strategy/base_strategy.py::BaseStrategy` and implement `
 
 ### Backtesting
 
-`backtesting/engine.py::BacktestEngine` iterates bars, calls `strategy.on_bar`, passes signals to `backtesting/portfolio.py::Portfolio`, and returns an equity curve as `list[float]`. Trades fill at bar close with no slippage.
+Config-driven and plug-and-play to match the strategy layer. A run is described by a `backtesting/config.py::BacktestConfig` (strategy name + params, symbol, data window, cost/fill model); `backtesting/runner.py::run_backtest(config)` builds the strategy by name from the registry, loads bars cache-first via `backtesting/data.py::load_bars` (`market_data_bars` → IBKR on a miss), and replays them through `backtesting/engine.py::BacktestEngine`. The engine fills the previous bar's signal at the current bar's open (`fill="next_open"`, lookahead-safe) via `backtesting/broker.py::SimBroker` (commission + slippage), accounts long/short in `backtesting/portfolio.py::Portfolio`, and returns a `backtesting/result.py::BacktestResult` with an equity curve, trade log, and metrics (`backtesting/metrics.py`). Bar-family only; the quoting/ERCOT family has no backtester yet. See `docs/BACKTESTING.md`.
 
 ### Live trading loop
 
