@@ -98,7 +98,7 @@ Strategy implementations. See `STRATEGY.md` for the expected interface and desig
 Strategies receive market data events or bar callbacks, compute signals, and emit order requests
 to the `orders/` layer.
 
-The live system supports multiple strategy instances running concurrently against the same IBApp connection; account-level state (self.account, self.positions) is shared, and account-level risk controls operate across the aggregate.
+The live system supports multiple strategy instances running concurrently against the same IBApp connection; account-level state (self.account, self.positions) is shared, and account-level risk controls operate across the aggregate (see `RISK.md`).
 
 ### `backtesting/`
 

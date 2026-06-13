@@ -61,7 +61,9 @@ Access via `get_current_cash_balance()`, `get_realized_pnl()`, etc.
 ```
 
 Updated by `updatePortfolio` callbacks. Symbols with `position == 0` are removed.
-Protected by `_account_lock`. Access via `get_position(symbol)`.
+Protected by `_account_lock`. `get_position(symbol)` is the access path for position state; it is
+also what feeds the `position` argument injected into strategies — see `STRATEGY.md` → Position
+Awareness for that rule.
 
 Note: keyed by `contract.symbol` (e.g. `"AAPL"`), not by `conId`. For most equity strategies
 this is unambiguous. If the system ever trades instruments where the same symbol appears on

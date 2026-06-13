@@ -90,7 +90,8 @@ disconnected app. There is no check that the connection is alive before trading.
 
 ## Where Risk Checks Belong
 
-Per the design in `STRATEGY.md`, risk is enforced at two layers:
+Risk is enforced at two layers. This is the authoritative description; `STRATEGY.md` covers the
+strategy author's obligations within layer 1 and points here for the rest.
 
 1. **Strategy layer** — strategy-specific rules (max position, entry conditions, flat-at-close).
    Enforced by the strategy not emitting a signal. Already partially in place.

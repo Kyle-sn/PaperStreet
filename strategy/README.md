@@ -106,7 +106,7 @@ Position is always injected via the `position` parameter of `on_bar`:
 - **In live trading** — the caller passes `IBApp.get_position(symbol)`, which is populated by the `updatePortfolio` EWrapper callback from TWS. This is the broker-confirmed position.
 - **In backtesting** — the engine passes `Portfolio.position`, which is updated after each processed signal.
 
-Self-tracking causes drift: the strategy's internal count can diverge from reality if the portfolio layer rejects a signal or if a fill is partial. Injecting position from the authoritative source keeps both contexts consistent.
+Self-tracking causes drift — the strategy's internal count diverges from reality if the portfolio layer rejects a signal or a fill is partial. See `docs/STRATEGY.md` → Position Awareness for the full rule and rationale.
 
 ---
 

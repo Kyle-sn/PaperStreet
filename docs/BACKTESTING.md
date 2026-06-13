@@ -46,10 +46,9 @@ it is running live or in a backtest.
 It is deliberately an **event loop**, not a vectorized engine. Every PaperStreet strategy is
 inventory-aware (see `STRATEGY.md` → Position Awareness): signals are gated on the position
 realized by prior fills, so the strategy is path-dependent. A bar-by-bar loop that feeds
-`portfolio.position` back into `on_bar` is the natural fit; vectorized libraries (vectorbt etc.)
-assume signals are independent of inventory and so are not used (see `ROADMAP.md` → Decided
-Against). When research needs parameter sweeps, loop this engine rather than reaching for one of
-those libraries.
+`portfolio.position` back into `on_bar` is the natural fit. Vectorized backtesters are not used —
+see `ROADMAP.md` → Decided Against for the full rationale. When research needs parameter sweeps,
+loop this engine rather than reaching for one of those libraries.
 
 A run is fully described by a single `BacktestConfig` (`backtesting/config.py`) — strategy
 name + params, symbol, data window, and cost/fill model. `run_backtest(config)`
@@ -169,7 +168,7 @@ A backtest run should produce at minimum:
 Run any strategy on **out-of-sample data** before paper trading. Split your dataset: use the first
 portion for development and the held-out tail for final validation.
 
-Portfolio-level evaluation across multiple strategies is not currently built. Each strategy is backtested in isolation. When multiple strategies are candidates for concurrent live operation, combining their equity curves and computing portfolio-level metrics (combined Sharpe, joint drawdown, cross-strategy correlation) becomes necessary — see ROADMAP.md backlog. This is much lighter work than a full multi-symbol backtester and can be done as post-processing on independent backtest results.
+Portfolio-level evaluation across multiple strategies is not currently built. Each strategy is backtested in isolation. When multiple strategies are candidates for concurrent live operation, combining their equity curves and computing portfolio-level metrics (combined Sharpe, joint drawdown, cross-strategy correlation) becomes necessary — see ROADMAP.md backlog. This is much lighter work than a full multi-symbol backtester and can be done as post-processing on independent backtest results. Independent post-processing assumes strategies do not compete for capital. When account capital is binding (as it is at current equity), the faithful version is a shared-cash replay: run all strategies against a single Portfolio with one cash account, so the combined equity curve respects the real budget constraint. Pure post-processing is an upper bound on achievable combined performance, not an estimate of it.
 
 ---
 

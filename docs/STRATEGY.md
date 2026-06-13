@@ -21,13 +21,17 @@ to mid-frequency and would require significant re-architecture for HFT.
 
 ## Multi-Strategy Operation
 
-PaperStreet is designed to run multiple single-symbol strategies concurrently. Each strategy instance trades one symbol (existing constraint). Portfolio-level diversification emerges from running several uncorrelated strategies in parallel — not from any single strategy being internally diversified.
+PaperStreet is designed to run multiple single-symbol strategies concurrently. Each strategy instance trades one symbol (existing constraint). Portfolio-level diversification emerges from running several uncorrelated strategies in parallel — not from any single strategy being internally diversified. 
+
+Concurrent strategies must trade disjoint symbol universes. IBKR reports one position per symbol, so two strategies sharing a symbol cannot have their inventory attributed separately, which breaks broker-authoritative position injection (on_bar(bar, position)). Per-strategy position attribution is explicitly out of scope; the universe-disjointness rule is the substitute.
+
+Joint-behavior gate. Before a second (or Nth) strategy is allocated capital alongside the live book, evaluate it jointly against the existing strategies — not just on standalone Sharpe. Compute cross-strategy return correlation, joint drawdown (depth and timing of shared worst periods), and combined Shardpe on overlapping windows. Critically, use tail-conditional correlation (correlation on down-market days / high-VIX subsamples), not full-sample Pearson — long-biased strategies decorrelate in calm markets and converge in selloffs, so full-sample correlation understates the risk that matters. A candidate that is Sharpe-positive standalone but shares its left tail with the existing book adds little diversification and may not warrant allocation. This is a gate on the allocation decision, not a step in the per-strategy 9-step workflow.
 
 Implications:
 
 - Each strategy must be Sharpe-positive on its own. Do not pursue strategies that depend on cross-sectional effects (inverse-vol weighting across instruments, basket-level vol targeting, cross-asset relative value) — those require multi-symbol infrastructure not yet built.
 - Strategies are selected for standalone viability. Naturally single-symbol strategies (intraday patterns, mean reversion, calendar effects, single-instrument vol/term-structure trades) fit. Cross-sectional strategies (TSMOM on a basket, pairs, cross-asset RV) do not.
-- Account-level constraints (PDT floor, total margin, daily loss limit, kill switch) apply across all running strategies — they are not per-strategy limits.
+- Account-level constraints apply across all running strategies, not per-strategy — see `RISK.md`.
 - Capital allocation between strategies is currently implicit. When more than one strategy reaches paper trading, an explicit allocation rule needs to be committed.
 
 ---
@@ -127,9 +131,9 @@ before adding, `position > 0` before selling) so the strategy never double-enter
 an exit. This is a deliberate, system-wide design constraint with two consequences worth stating:
 
 - Strategies are **path-dependent**: the decision on bar N depends on fills realized over bars
-  1…N-1. This is why backtesting uses the custom event-loop engine and not a vectorized library
-  that assumes signals are independent of inventory (see `ROADMAP.md` → Decided Against, and
-  `BACKTESTING.md`).
+  1…N-1. This is why backtesting uses the custom event-loop engine rather than a vectorized
+  library (see `BACKTESTING.md` → Architecture, and `ROADMAP.md` → Decided Against for the full
+  rationale).
 - Position must come from an authoritative source, injected per call (below), so the strategy's
   view of inventory matches reality in both live and backtest.
 
@@ -149,17 +153,17 @@ in backtest. This eliminates drift when a signal is rejected downstream.
 
 ## Risk Controls
 
-Risk checks belong at two layers:
+Risk is enforced at two layers (strategy layer, then a system-wide orders layer). The full model
+and the division of responsibility live in `RISK.md` → Where Risk Checks Belong. A strategy author
+is responsible only for the **strategy layer**:
 
-1. **In the strategy**: strategy-specific logic (e.g. max loss per day, max position size,
-   entry conditions). The strategy should simply not emit `OrderRequest`s that violate its rules.
+- Per-strategy position cap: never emit an `OrderRequest` that pushes inventory past the strategy's
+  `max_position`.
+- Flat-at-close (if applicable): exit positions before market close for day-trade strategies.
+- More generally: do not emit `OrderRequest`s that violate the strategy's own rules.
 
-2. **In the orders layer**: system-wide hard limits that no strategy can bypass (e.g. maximum
-   single-order size, kill switch for all new orders). This layer is not yet implemented.
-
-Every strategy must implement at least:
-- Position size limit: never request more than `MAX_POSITION_SIZE` shares in a single order
-- Flat-at-close logic (if applicable): exit positions before market close for day-trade strategies
+System-wide hard limits that no strategy can bypass (per-order size cap, kill switch) live in the
+orders layer, not the strategy — see `RISK.md` → Where Risk Checks Belong.
 
 ---
 
