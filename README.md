@@ -10,4 +10,6 @@ My goal was to successfully place a trade in my personal trading account using t
 I lack the know how to perform worthwhile quantitative research and so there is no strategy logic at the moment. My professional experience is in trading operations and supporting automated trading systems, which is why I am primarily focusing on infrastructure for this project.
 
 ### The future of v2
-I will update this as I continue to build out v2. As always, this is just a side project that I work on in my free time when I am bored.
+My background is in HFT, spanning systematic trading operations support, automation and deployment, trading system infrastructure, and business development. I'm currently head of market operations for a derivatives exchange. That experience gives me confidence in architecting trading systems, so my workflow here is to use Claude to draft code and logic design, with everything reviewed by me before merging to main.
+
+As always, this is just a side project that I work on in my free time when I am bored.
