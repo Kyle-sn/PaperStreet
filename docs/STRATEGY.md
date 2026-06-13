@@ -19,6 +19,19 @@ to mid-frequency and would require significant re-architecture for HFT.
 
 ---
 
+## Multi-Strategy Operation
+
+PaperStreet is designed to run multiple single-symbol strategies concurrently. Each strategy instance trades one symbol (existing constraint). Portfolio-level diversification emerges from running several uncorrelated strategies in parallel — not from any single strategy being internally diversified.
+
+Implications:
+
+- Each strategy must be Sharpe-positive on its own. Do not pursue strategies that depend on cross-sectional effects (inverse-vol weighting across instruments, basket-level vol targeting, cross-asset relative value) — those require multi-symbol infrastructure not yet built.
+- Strategies are selected for standalone viability. Naturally single-symbol strategies (intraday patterns, mean reversion, calendar effects, single-instrument vol/term-structure trades) fit. Cross-sectional strategies (TSMOM on a basket, pairs, cross-asset RV) do not.
+- Account-level constraints (PDT floor, total margin, daily loss limit, kill switch) apply across all running strategies — they are not per-strategy limits.
+- Capital allocation between strategies is currently implicit. When more than one strategy reaches paper trading, an explicit allocation rule needs to be committed.
+
+---
+
 ## Strategy Interface
 
 There are two strategy families, kept deliberately separate because they consume different

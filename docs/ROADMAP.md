@@ -50,6 +50,14 @@ Prioritized things not yet started.
 - **Daily loss limit** — session-level circuit breaker that halts new order submissions after realized + unrealized PnL drops below a configured threshold; reads from `self.account`
 - **Backtesting: quoting family** — event-replay backtester for `BaseQuotingStrategy`
   (settlement/estimate stream, not OHLCV bars); the bar-family harness is built (see Working)
+- **Multi-symbol / portfolio backtester** — a portfolio-level extension (or sibling) of the
+  bar-family engine that holds a *basket* of instruments under one cash/risk account:
+  portfolio sizing across instruments (inverse-vol weighting, vol-targeting), point-in-time
+  vol estimation, and cross-instrument accounting. **Hard prerequisite for any cross-sectional
+  / diversified strategy** — the current engine is single-symbol / one-instance (`STRATEGY.md`),
+  so a basket sized as a single portfolio cannot be expressed or validated. Blocks the parked
+  diversified-trend strategy (`research/diversified_trend_strategy_notes.md`). Stays the custom
+  engine (extended), consistent with "Decided Against: third-party / vectorized backtesters."
 - **Secrets manager** — replace hardcoded credentials and account number with a secrets manager (e.g. Windows Credential Manager, AWS Secrets Manager, or similar) before switching to IB Gateway
 - **IB Gateway + IBC** — switch from TWS to headless IB Gateway; use IBC for automated login; blocked on secrets manager being in place first
 - **Reconnect logic** — detect connection drop (error codes 1100/1102), re-subscribe to account updates, re-warm strategies
@@ -59,8 +67,14 @@ Prioritized things not yet started.
   workflow. Built on the custom engine rather than a vectorized library so sweeps honor the
   same inventory-aware, path-dependent fills as validation (see Decided Against). Output is
   candidate parameter sets that must still pass a single `run_backtest()` before paper trading.
-- **First strategy** — signal research → backtest → paper trading (see `STRATEGY.md` for candidates)
 - **CONVENTIONS.md** — document coding patterns, naming conventions, error handling rules
+- **Portfolio-level backtest evaluation** — combine equity curves across independent
+  single-symbol backtests to compute portfolio Sharpe, combined drawdown, and cross-strategy
+  correlation. Much lighter than the multi-symbol backtester above (post-processing on
+  independent results, not a new engine); deferred until a second strategy reaches production.
+- **Capital allocation across strategies** — explicit framework for splitting account equity
+  across multiple concurrently live strategies (see `STRATEGY.md` → Multi-Strategy Operation).
+  Allocation is implicit today; deferred until more than one strategy reaches paper trading.
 
 ---
 

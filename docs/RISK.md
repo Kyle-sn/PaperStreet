@@ -120,3 +120,7 @@ account:
 | `BROKER_CONNECTION_PORT` | `7497` | Paper TWS port; `7496` for live TWS |
 | System-wide order size limit | Not implemented | Add before live |
 | Kill switch | Not implemented | Add before live |
+
+- Starting capital is $50k; hard floor is $25k (PDT). The buffer is $25k of drawdown capacity in absolute terms — design risk limits against the floor, not against starting equity.
+- Account-level limits (kill switch, daily loss limit, total margin usage, PDT proximity alert) apply across the sum of all running strategies, not per-strategy. When the kill switch is implemented, it must halt all strategy instances, not just one.
+- Per-strategy risk controls (position cap, order sizing) remain the strategy's responsibility but are not a substitute for account-level limits.

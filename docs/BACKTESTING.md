@@ -169,6 +169,8 @@ A backtest run should produce at minimum:
 Run any strategy on **out-of-sample data** before paper trading. Split your dataset: use the first
 portion for development and the held-out tail for final validation.
 
+Portfolio-level evaluation across multiple strategies is not currently built. Each strategy is backtested in isolation. When multiple strategies are candidates for concurrent live operation, combining their equity curves and computing portfolio-level metrics (combined Sharpe, joint drawdown, cross-strategy correlation) becomes necessary — see ROADMAP.md backlog. This is much lighter work than a full multi-symbol backtester and can be done as post-processing on independent backtest results.
+
 ---
 
 ## Usage
