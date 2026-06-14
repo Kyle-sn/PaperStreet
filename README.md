@@ -7,9 +7,9 @@ An automated trading system written primarily in java utilizing the Interactive 
 
 My goal was to successfully place a trade in my personal trading account using the automated trading system. I was able to do so in production on 2022-03-28.
 
-I lack the know how to perform worthwhile quantitative research and so there is no strategy logic at the moment. My professional experience is in trading operations and supporting automated trading systems, which is why I am primarily focusing on infrastructure for this project.
-
 ### The future of v2
-My background is in HFT, spanning systematic trading operations support, automation and deployment, trading system infrastructure, and business development. I'm currently head of market operations for a derivatives exchange. That experience gives me confidence in architecting trading systems, so my workflow here is to use Claude to draft code and logic design, with everything reviewed by me before merging to main.
+My background is in HFT, spanning systematic trading operations support, automation and deployment, trading system infrastructure, and business development. I'm currently head of market operations for a derivatives exchange. As a result, I have confidence in architecting trading systems, so my workflow here is to use Claude to draft code and logic design, with everything reviewed by me before merging to main. 
+
+Although I am starting to build out the strategy, backtesting, and research parts of the system, I do not have a background in quantitative research and so my goal is to get a framework in place regardless of the profitability of strategy. I will focus on profitability once I have all of the foundational pieces in place.
 
 As always, this is just a side project that I work on in my free time when I am bored.
